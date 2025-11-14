@@ -1,0 +1,14 @@
+# colcon build directories
+build/
+install/
+log/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# VSCode
+.vscode/
+
+# macOS files
+.DS_Store

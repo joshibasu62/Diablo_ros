@@ -1,1 +1,0 @@
-diablo_env_ros

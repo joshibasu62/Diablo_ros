@@ -1,0 +1,7 @@
+Metadata-Version: 2.1
+Name: diablo-env-ros
+Version: 0.0.1
+Summary: Diablo ROS 2 environment
+Maintainer: Basanta Joshi
+Maintainer-email: joshibasu62@gmail.com
+License: Apache License 2.0

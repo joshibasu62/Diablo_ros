@@ -1,0 +1,41 @@
+[1.189s] Invoking command in '/home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/src/diablo_env_ros': DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PYTHONPATH=/home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/build/diablo_env_ros/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/lib/python3.12/site-packages:${PYTHONPATH} VIRTUAL_ENV_PROMPT=(myenv) /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/diablo_env_ros build --build-base /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/build/diablo_env_ros/build install --record /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/build/diablo_env_ros/install.log --single-version-externally-managed install_data
+[1.551s] running egg_info
+[1.573s] writing ../../build/diablo_env_ros/diablo_env_ros.egg-info/PKG-INFO
+[1.573s] writing dependency_links to ../../build/diablo_env_ros/diablo_env_ros.egg-info/dependency_links.txt
+[1.574s] writing requirements to ../../build/diablo_env_ros/diablo_env_ros.egg-info/requires.txt
+[1.574s] writing top-level names to ../../build/diablo_env_ros/diablo_env_ros.egg-info/top_level.txt
+[1.617s] reading manifest file '../../build/diablo_env_ros/diablo_env_ros.egg-info/SOURCES.txt'
+[1.618s] writing manifest file '../../build/diablo_env_ros/diablo_env_ros.egg-info/SOURCES.txt'
+[1.618s] running build
+[1.619s] running build_py
+[1.619s] running install
+[1.633s] running install_lib
+[1.663s] running install_data
+[1.664s] creating /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/launch
+[1.665s] copying launch/check_urdf.launch.py -> /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/launch
+[1.665s] creating /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/urdf
+[1.665s] copying urdf/robot_with_tower.urdf -> /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/urdf
+[1.665s] copying urdf/robot.urdf -> /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/urdf
+[1.665s] copying urdf/display.xacro -> /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/urdf
+[1.665s] copying urdf/ros2control.xacro -> /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/urdf
+[1.665s] copying urdf/description.xacro -> /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/urdf
+[1.665s] copying urdf/materials.xacro -> /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/urdf
+[1.666s] copying urdf/robot.xacro -> /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/urdf
+[1.666s] creating /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/meshes
+[1.666s] copying meshes/left_leg_2.STL -> /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/meshes
+[1.666s] copying meshes/left_leg_4.STL -> /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/meshes
+[1.666s] copying meshes/left_leg_1.STL -> /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/meshes
+[1.667s] copying meshes/right_leg_4.STL -> /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/meshes
+[1.667s] copying meshes/right_leg_3.STL -> /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/meshes
+[1.667s] copying meshes/right_leg_1.STL -> /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/meshes
+[1.668s] copying meshes/left_leg_3.STL -> /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/meshes
+[1.668s] copying meshes/base_link.STL -> /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/meshes
+[1.671s] copying meshes/right_leg_2.STL -> /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/meshes
+[1.671s] creating /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/rviz
+[1.672s] creating /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/config
+[1.672s] creating /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/worlds
+[1.672s] running install_egg_info
+[1.698s] Copying ../../build/diablo_env_ros/diablo_env_ros.egg-info to /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/lib/python3.12/site-packages/diablo_env_ros-0.0.1-py3.12.egg-info
+[1.699s] running install_scripts
+[1.884s] writing list of installed files to '/home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/build/diablo_env_ros/install.log'
+[1.914s] Invoked command in '/home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/src/diablo_env_ros' returned '0': DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PYTHONPATH=/home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/build/diablo_env_ros/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/lib/python3.12/site-packages:${PYTHONPATH} VIRTUAL_ENV_PROMPT=(myenv) /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/diablo_env_ros build --build-base /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/build/diablo_env_ros/build install --record /home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/build/diablo_env_ros/install.log --single-version-externally-managed install_data

@@ -1,0 +1,20 @@
+joint_trajectory_controller:
+  type: joint_trajectory_controller/JointTrajectoryController
+  joints:
+    - joint_left_leg_1
+    - joint_left_leg_2
+    - joint_left_leg_3
+    - joint_left_leg_4
+    - joint_right_leg_1
+    - joint_right_leg_2
+    - joint_right_leg_3
+    - joint_right_leg_4
+  gains:
+    joint_left_leg_1: {p: 20.0, d: 1.0}
+    joint_left_leg_2: {p: 20.0, d: 1.0}
+    joint_left_leg_3: {p: 20.0, d: 1.0}
+    joint_left_leg_4: {p: 20.0, d: 1.0}
+    joint_right_leg_1: {p: 20.0, d: 1.0}
+    joint_right_leg_2: {p: 20.0, d: 1.0}
+    joint_right_leg_3: {p: 20.0, d: 1.0}
+    joint_right_leg_4: {p: 20.0, d: 1.0}

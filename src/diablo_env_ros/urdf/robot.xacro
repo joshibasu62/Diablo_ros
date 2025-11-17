@@ -7,17 +7,16 @@
   <xacro:property name="ctrl_mode" value="$(arg ctrl_mode)" />
   <xacro:arg name="yaml_path" default="" />
 
-  <xacro:include filename="$file://$(find diablo_env_ros)/urdf/materials.xacro" />
-  <xacro:include filename="$file://$(find diablo_env_ros)/urdf/description.xacro" />
-  <xacro:include filename="$file://$(find diablo_env_ros)/urdf/ros2control.xacro" />
-  <xacro:include filename="$file://$(find diablo_env_ros)/urdf/robot.gazebo" />
+  <xacro:include filename="$(find diablo_env_ros)/urdf/materials.xacro" />
+  <xacro:include filename="$(find diablo_env_ros)/urdf/description.xacro" />
+  <xacro:include filename="$(find diablo_env_ros)/urdf/ros2control.xacro" />
+  <xacro:include filename="$(find diablo_env_ros)/urdf/robot.gazebo" />
 
-  <gazebo>
-    <plugin name="joint_state_publisher" filename="libgazebo_ros_joint_state_publisher.so"/>
-  </gazebo>
+  <xacro:ros2control name="diablo" ctrl_mode="position" sim_env="gazebo" yaml_path="$(find diablo_description)/config/controllers.yaml"/>
+
 
   <xacro:if value="$(arg use_tower)">
-    <xacro:include filename="$file://$(find diablo_env_ros)/urdf/tower.urdf.xacro" />
+    <xacro:include filename="$(find diablo_env_ros)/urdf/tower.urdf.xacro" />
     <joint name="tower_joint" type="fixed">
       <parent link="base_link" />
       <child link="tower_base_link" />

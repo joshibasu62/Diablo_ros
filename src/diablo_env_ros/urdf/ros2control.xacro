@@ -74,7 +74,7 @@
 
       <gazebo>
         <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
-          <namespace>tita</namespace>
+          <namespace>diablo_env_ros</namespace>
           <parameters>$(find ${yaml_path})/config/controllers.yaml</parameters>
         </plugin>
       </gazebo>

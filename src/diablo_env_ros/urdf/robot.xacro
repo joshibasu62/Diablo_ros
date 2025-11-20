@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://wiki.ros.org/xacro" name="tita">
+<robot xmlns:xacro="http://www.ros.org/xacro" name="diablo">
   <xacro:arg name="prefix" default="" />
   <xacro:arg name="use_tower" default="false" />
   
@@ -9,35 +9,39 @@
 
   <xacro:include filename="$(find diablo_env_ros)/urdf/materials.xacro" />
   <xacro:include filename="$(find diablo_env_ros)/urdf/description.xacro" />
-  <xacro:include filename="$(find diablo_env_ros)/urdf/ros2control.xacro" />
-  <xacro:include filename="$(find diablo_env_ros)/urdf/robot.gazebo" />
-
-  <xacro:ros2control name="diablo" ctrl_mode="position" sim_env="gazebo" yaml_path="$(find diablo_description)/config/controllers.yaml"/>
-
-
-  <xacro:if value="$(arg use_tower)">
-    <xacro:include filename="$(find diablo_env_ros)/urdf/tower.urdf.xacro" />
-    <joint name="tower_joint" type="fixed">
-      <parent link="base_link" />
-      <child link="tower_base_link" />
-      <origin xyz="0.0 0.0 0.1" rpy="0.0 0.0 0.0" />
-    </joint>
-    <xacro:tita_tower />
-  </xacro:if>
-
-  <xacro:if value="${sim_env == 'none'}">
-    <xacro:property name="name" value="HardwareControl" />
-  </xacro:if>
-
-  <xacro:if value="${sim_env == 'gazebo'}">
-    <xacro:property name="name" value="GazeboControl" />
-  </xacro:if>
-
-  <xacro:if value="${sim_env == 'webots'}">
-    <xacro:property name="name" value="WebotsControl" />
-  </xacro:if>
-
+  
   <xacro:description />
-  <xacro:ros2control name="${name}" ctrl_mode="$(arg ctrl_mode)" sim_env="$(arg sim_env)" yaml_path="$(arg yaml_path)" />
+
+
+  <!-- Gazebo Physics Properties -->
+  <gazebo>
+    <mu1>0.5</mu1>       <!-- static friction coefficient -->
+    <mu2>0.3</mu2>       <!-- dynamic friction coefficient -->
+  </gazebo>
+
+  <!-- Gazebo Plugins and Sensors -->
+  <gazebo>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>joint_left_leg_1</joint_name>
+      <joint_name>joint_right_leg_1</joint_name>
+      <joint_name>joint_left_leg_2</joint_name>
+      <joint_name>joint_right_leg_2</joint_name>
+      <joint_name>joint_left_leg_4</joint_name>
+      <joint_name>joint_right_leg_4</joint_name>
+      <use_force_commands>true</use_force_commands>
+      <topic>effort_cmd</topic>
+    </plugin>
+    <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+      <topic>joint_states</topic>
+      <joint_name>joint_left_leg_1</joint_name>
+      <joint_name>joint_right_leg_1</joint_name>
+      <joint_name>joint_left_leg_2</joint_name>
+      <joint_name>joint_right_leg_2</joint_name>
+      <joint_name>joint_left_leg_3</joint_name>
+      <joint_name>joint_right_leg_3</joint_name>
+      <joint_name>joint_left_leg_4</joint_name>
+      <joint_name>joint_right_leg_4</joint_name>
+    </plugin>
+  </gazebo>
 
 </robot>

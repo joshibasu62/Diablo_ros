@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="tita">
   <xacro:macro name="description">
+    <link name="world"/>
     <link name="base_link">
       <inertial>
         <origin xyz="0.020452 3.5457E-06 0.01871" rpy="0 0 0" />
@@ -21,51 +22,63 @@
         </geometry>
       </collision>
     </link>
+    <joint name="base_link_joint" type="fixed">
+      <origin rpy="0 0 0" xyz="0 0 0.35"/>
+      <parent link="world"/>
+      <child link="base_link"/>
+      <axis xyz="0 0 0"/>
+    </joint>
+
+
     <link name="spad">
     </link>
-    <joint name="spad" type="fixed">
+    <joint name="joint_spad" type="fixed">
       <origin xyz="0.24052 -0.0019 0.064455" rpy="2.199 0 1.5708" />
       <parent link="base_link" />
       <child link="spad" />
       <axis xyz="0 0 0" />
     </joint>
+
+
     <link name="spad1">
     </link>
-    <joint name="spad1" type="fixed">
+    <joint name="joint_spad1" type="fixed">
       <origin xyz="0.21953 -0.0019 -0.030142" rpy="2.632 0 1.5708" />
       <parent link="base_link" />
       <child link="spad1" />
       <axis xyz="0 0 0" />
     </joint>
+
+
     <link name="left_camera">
     </link>
-    <joint name="left_camera" type="fixed">
+    <joint name="joint_left_camera" type="fixed">
       <origin xyz="0.23416 0.075 0.04036" rpy="1.5708 0 1.5708" />
       <parent link="base_link" />
       <child link="left_camera" />
       <axis xyz="0 0 0" />
     </joint>
+
+
     <link name="ch201">
     </link>
-    <joint name="ch201" type="fixed">
+    <joint name="joint_ch201" type="fixed">
       <origin xyz="0.23782 0 0.018636" rpy="1.1693 0 1.5708" />
       <parent link="base_link" />
       <child link="ch201" />
       <axis xyz="0 0 0" />
     </joint>
+
+
     <link name="right_camara">
     </link>
-    <joint name="right_camera" type="fixed">
+    <joint name="joint_right_camera" type="fixed">
       <origin xyz="0.23416 -0.075001 0.04036" rpy="1.5708 0 1.5708" />
       <parent link="base_link" />
       <child link="right_camara" />
       <axis xyz="0 0 0" />
     </joint>
-    <joint name="imu_joint" type="fixed">
-      <parent link="base_link"/>
-      <child link="imu_link"/>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-    </joint>
+    
 
     <link name="imu_link">
       <inertial>
@@ -88,6 +101,12 @@
       </collision>
     </link>
 
+    <joint name="imu_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="imu_link"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+    </joint>
+
     <link name="left_leg_1">
       <inertial>
         <origin xyz="0.0016025 5.0253E-05 0.000638" rpy="0 0 0" />
@@ -99,7 +118,7 @@
         <geometry>
           <mesh filename="file://$(find diablo_env_ros)/meshes/left_leg_1.STL" />
         </geometry>
-        <material name="black"/>
+        <material name="blue"/>
       </visual>
     </link>
     <joint name="joint_left_leg_1" type="revolute">
@@ -120,7 +139,7 @@
         <geometry>
           <mesh filename="file://$(find diablo_env_ros)/meshes/left_leg_2.STL" />
         </geometry>
-        <material name="black"/>
+        <material name="green"/>
       </visual>
     </link>
     <joint name="joint_left_leg_2" type="revolute">
@@ -141,7 +160,7 @@
         <geometry>
           <mesh filename="file://$(find diablo_env_ros)/meshes/left_leg_3.STL" />
         </geometry>
-        <material name="black"/>
+        <material name="grey"/>
       </visual>
       <collision>
         <origin xyz="0.1 0.021 -0.002" rpy="0 0 -0.131" />
@@ -168,7 +187,7 @@
         <geometry>
           <mesh filename="file://$(find diablo_env_ros)/meshes/left_leg_4.STL" />
         </geometry>
-        <material name="black"/>
+        <material name="silver"/>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
@@ -195,7 +214,7 @@
         <geometry>
           <mesh filename="file://$(find diablo_env_ros)/meshes/right_leg_1.STL" />
         </geometry>
-        <material name="black"/>
+        <material name="blue"/>
       </visual>
     </link>
     <joint name="joint_right_leg_1" type="revolute">
@@ -216,7 +235,7 @@
         <geometry>
           <mesh filename="file://$(find diablo_env_ros)/meshes/right_leg_2.STL" />
         </geometry>
-        <material name="black"/>
+        <material name="green"/>
       </visual>
     </link>
     <joint name="joint_right_leg_2" type="revolute">
@@ -237,7 +256,7 @@
         <geometry>
           <mesh filename="file://$(find diablo_env_ros)/meshes/right_leg_3.STL" />
         </geometry>
-        <material name="black"/>
+        <material name="grey"/>
       </visual>
       <collision>
         <origin xyz="0.1 0.021 -0.002" rpy="0 0 -0.131" />
@@ -264,7 +283,7 @@
         <geometry>
           <mesh filename="file://$(find diablo_env_ros)/meshes/right_leg_4.STL" />
         </geometry>
-        <material name="black"/>
+        <material name="silver"/>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />

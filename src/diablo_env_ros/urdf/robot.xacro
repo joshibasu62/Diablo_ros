@@ -19,6 +19,45 @@
     <mu2>0.3</mu2>       <!-- dynamic friction coefficient -->
   </gazebo>
 
+  <!-- Enable Self-Collisions -->
+  <gazebo reference="base_link">
+    <self_collide>true</self_collide>
+  </gazebo>
+
+  <gazebo reference="left_leg_1">
+    <self_collide>true</self_collide>
+  </gazebo>
+
+  <gazebo reference="left_leg_2">
+    <self_collide>true</self_collide>
+  </gazebo>
+
+  <gazebo reference="left_leg_3">
+    <self_collide>true</self_collide>
+  </gazebo>
+
+  <gazebo reference="left_leg_4">
+    <self_collide>true</self_collide>
+  </gazebo>
+
+  <gazebo reference="right_leg_1">
+    <self_collide>true</self_collide>
+  </gazebo>
+
+  <gazebo reference="right_leg_2">
+    <self_collide>true</self_collide>
+  </gazebo>
+
+  <gazebo reference="right_leg_3">
+    <self_collide>true</self_collide>
+  </gazebo>
+
+  <gazebo reference="right_leg_4">
+    <self_collide>true</self_collide>
+  </gazebo>
+
+
+
   <!-- Gazebo Plugins and Sensors -->
   <gazebo>
     <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">

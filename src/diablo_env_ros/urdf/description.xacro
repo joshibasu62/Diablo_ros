@@ -23,7 +23,7 @@
       </collision>
     </link>
     <joint name="base_link_joint" type="fixed">
-      <origin rpy="0 0 0" xyz="0 0 0.35"/>
+      <origin rpy="0 0 0" xyz="0 0 0.45"/>
       <parent link="world"/>
       <child link="base_link"/>
       <axis xyz="0 0 0"/>
@@ -120,6 +120,12 @@
         </geometry>
         <material name="blue"/>
       </visual>
+      <!-- <collision>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <cylinder radius="0.035" length="0.1426" />
+        </geometry>
+      </collision> -->
     </link>
     <joint name="joint_left_leg_1" type="revolute">
       <origin xyz="0 0.0895 0" rpy="1.5708 0 1.5708" />
@@ -128,6 +134,7 @@
       <axis xyz="0 0 1" />
       <limit lower="-0.785398" upper="0.785398" effort="100" velocity="100" />
     </joint>
+
     <link name="left_leg_2">
       <inertial>
         <origin xyz="0.021763 0.0019069 -0.027868" rpy="0 0 0" />
@@ -141,6 +148,12 @@
         </geometry>
         <material name="green"/>
       </visual>
+      <!-- <collision>
+        <origin xyz="-0.1426 0 0" rpy="1.5708 0 1.5708" />
+        <geometry>
+          <cylinder radius="0.035" length="0.2" />
+        </geometry>
+      </collision> -->
     </link>
     <joint name="joint_left_leg_2" type="revolute">
       <origin xyz="0.1426 0 0" rpy="-1.5708 0 -1.5708" />
@@ -149,6 +162,7 @@
       <axis xyz="0 0 1" />
       <limit lower="-1.919862" upper="3.490659" effort="100" velocity="100" />
     </joint>
+
     <link name="left_leg_3">
       <inertial>
         <origin xyz="0.095348 0.011698 0.001838" rpy="0 0 0" />
@@ -165,7 +179,7 @@
       <collision>
         <origin xyz="0.1 0.021 -0.002" rpy="0 0 -0.131" />
         <geometry>
-          <box size="0.2 0.07 0.05" />
+          <box size="0.2 0.07 0.07" />
         </geometry>
       </collision>
     </link>
@@ -176,6 +190,7 @@
       <axis xyz="0 0 1" />
       <limit lower="-2.670354" upper="-0.698132" effort="100" velocity="100" />
     </joint>
+
     <link name="left_leg_4">
       <inertial>
         <origin xyz="-2.267E-06 -1.6471E-06 -0.00095616" rpy="0 0 0" />
@@ -203,6 +218,7 @@
       <axis xyz="0 0 1" />
       <limit lower="-6.283185e4" upper="6.283185e4" effort="100" velocity="100" />
     </joint>
+
     <link name="right_leg_1">
       <inertial>
         <origin xyz="-0.0016025 5.0253E-05 0.00063801" rpy="0 0 0" />
@@ -216,6 +232,12 @@
         </geometry>
         <material name="blue"/>
       </visual>
+      <!-- <collision>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <cylinder radius="0.035" length="0.1426" />
+        </geometry>
+      </collision> -->
     </link>
     <joint name="joint_right_leg_1" type="revolute">
       <origin xyz="0 -0.0895 0" rpy="1.5708 0 1.5708" />
@@ -224,6 +246,7 @@
       <axis xyz="0 0 1" />
       <limit lower="-0.785398" upper="0.785398" effort="100" velocity="100" />
     </joint>
+
     <link name="right_leg_2">
       <inertial>
         <origin xyz="0.021763 0.0019065 0.027873" rpy="0 0 0" />
@@ -237,6 +260,12 @@
         </geometry>
         <material name="green"/>
       </visual>
+      <!-- <collision>
+        <origin xyz="-0.1426 0 0" rpy="1.5708 0 1.5708" />
+        <geometry>
+          <cylinder radius="0.035" length="0.2" />
+        </geometry>
+      </collision> -->
     </link>
     <joint name="joint_right_leg_2" type="revolute">
       <origin xyz="-0.1426 0 0" rpy="-1.5708 0 -1.5708" />
@@ -245,6 +274,7 @@
       <axis xyz="0 0 1" />
       <limit lower="-1.919862" upper="3.490659" effort="100" velocity="100" />
     </joint>
+
     <link name="right_leg_3">
       <inertial>
         <origin xyz="0.095348 0.011698 -0.001838" rpy="0 0 0" />
@@ -261,7 +291,7 @@
       <collision>
         <origin xyz="0.1 0.021 -0.002" rpy="0 0 -0.131" />
         <geometry>
-          <box size="0.2 0.07 0.05" />
+          <box size="0.2 0.07 0.07" />
         </geometry>
       </collision>
     </link>
@@ -272,6 +302,7 @@
       <axis xyz="0 0 1" />
       <limit lower="-2.670354" upper="-0.698132" effort="100" velocity="100" />
     </joint>
+    
     <link name="right_leg_4">
       <inertial>
         <origin xyz="-2.3798E-06 -1.5854E-06 0.00095595" rpy="0 0 0" />

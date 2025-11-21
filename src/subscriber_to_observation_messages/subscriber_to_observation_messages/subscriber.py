@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
-from diablo_joint_observer.msg import observation
+from diablo_joint_observer.msg import Observation
 
 class DiabloObserver(Node):
     def __init__(self):
@@ -9,7 +9,7 @@ class DiabloObserver(Node):
 
         # Publisher (observations)
         self.diablo_state_publisher = self.create_publisher(
-            observation,
+            Observation,
             'observations',
             10
         )
@@ -27,14 +27,14 @@ class DiabloObserver(Node):
         try:
             # slider_to_cart_index = msg.name.index("slider_to_cart")
             # pole_holder_index = msg.name.index("slider_to_pole_with_holder")
-            joint_left_leg_1_index = msg.name.index("left_leg_1_joint")
-            joint_right_leg_1_index = msg.name.index("right_leg_1_joint")   
-            joint_left_leg_2_index = msg.name.index("left_leg_2_joint")
-            joint_right_leg_2_index = msg.name.index("right_leg_2_joint")
-            joint_left_leg_3_index = msg.name.index("left_leg_3_joint")
-            joint_right_leg_3_index = msg.name.index("right_leg_3_joint")
-            joint_left_leg_4_index = msg.name.index("left_leg_4_joint")
-            joint_right_leg_4_index = msg.name.index("right_leg_4_joint")
+            joint_left_leg_1_index = msg.name.index("joint_left_leg_1")
+            joint_right_leg_1_index = msg.name.index("joint_right_leg_1")   
+            joint_left_leg_2_index = msg.name.index("joint_left_leg_2")
+            joint_right_leg_2_index = msg.name.index("joint_right_leg_2")
+            joint_left_leg_3_index = msg.name.index("joint_left_leg_3")
+            joint_right_leg_3_index = msg.name.index("joint_right_leg_3")
+            joint_left_leg_4_index = msg.name.index("joint_left_leg_4")
+            joint_right_leg_4_index = msg.name.index("joint_right_leg_4")
 
 
         except ValueError:
@@ -42,7 +42,7 @@ class DiabloObserver(Node):
             return
 
         # Create message
-        diablo_observation = observation()
+        diablo_observation = Observation()
         # diablo_observation.cart_position = msg.position[slider_to_cart_index]
         # diablo_observation.cart_velocity = msg.velocity[slider_to_cart_index]
         # diablo_observation.pole_angle = msg.position[pole_holder_index]

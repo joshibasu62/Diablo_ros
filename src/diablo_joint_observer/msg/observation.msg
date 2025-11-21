@@ -1,8 +1,19 @@
-float64 joint_left_leg_1
-float64 joint_left_leg_2
-float64 joint_left_leg_3
-float64 joint_left_leg_4
-float64 joint_right_leg_1
-float64 joint_right_leg_2
-float64 joint_right_leg_3
-float64 joint_right_leg_4
+float64 left_leg_1_pos
+float64 left_leg_2_pos
+float64 left_leg_3_pos
+float64 left_leg_4_pos
+
+float64 right_leg_1_pos
+float64 right_leg_2_pos
+float64 right_leg_3_pos
+float64 right_leg_4_pos
+
+float64 left_leg_1_vel
+float64 left_leg_2_vel
+float64 left_leg_3_vel
+float64 left_leg_4_vel
+
+float64 right_leg_1_vel
+float64 right_leg_2_vel
+float64 right_leg_3_vel
+float64 right_leg_4_vel

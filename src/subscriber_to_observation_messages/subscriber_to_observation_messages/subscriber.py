@@ -25,8 +25,6 @@ class DiabloObserver(Node):
     def joint_state_callback(self, msg: JointState):
         # Find indices of required joints
         try:
-            # slider_to_cart_index = msg.name.index("slider_to_cart")
-            # pole_holder_index = msg.name.index("slider_to_pole_with_holder")
             joint_left_leg_1_index = msg.name.index("joint_left_leg_1")
             joint_right_leg_1_index = msg.name.index("joint_right_leg_1")   
             joint_left_leg_2_index = msg.name.index("joint_left_leg_2")
@@ -43,10 +41,7 @@ class DiabloObserver(Node):
 
         # Create message
         diablo_observation = Observation()
-        # diablo_observation.cart_position = msg.position[slider_to_cart_index]
-        # diablo_observation.cart_velocity = msg.velocity[slider_to_cart_index]
-        # diablo_observation.pole_angle = msg.position[pole_holder_index]
-        # diablo_observation.pole_angular_velocity = msg.velocity[pole_holder_index]
+    
 
         #position of legs
         diablo_observation.left_leg_1_pos = msg.position[joint_left_leg_1_index]

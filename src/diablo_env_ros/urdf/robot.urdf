@@ -136,12 +136,12 @@
       </geometry>
       <material name="blue"/>
     </visual>
-    <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <geometry>
-        <cylinder length="0.1426" radius="0.035"/>
-      </geometry>
-    </collision>
+    <!-- <collision>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <cylinder radius="0.035" length="0.1426" />
+        </geometry>
+      </collision> -->
   </link>
   <joint name="joint_left_leg_1" type="revolute">
     <origin rpy="1.5708 0 1.5708" xyz="0 0.0895 0"/>
@@ -163,12 +163,12 @@
       </geometry>
       <material name="green"/>
     </visual>
-    <collision>
-      <origin rpy="1.5708 0 1.5708" xyz="-0.1426 0 0"/>
-      <geometry>
-        <cylinder length="0.2" radius="0.035"/>
-      </geometry>
-    </collision>
+    <!-- <collision>
+        <origin xyz="-0.1426 0 0" rpy="1.5708 0 1.5708" />
+        <geometry>
+          <cylinder radius="0.035" length="0.2" />
+        </geometry>
+      </collision> -->
   </link>
   <joint name="joint_left_leg_2" type="revolute">
     <origin rpy="-1.5708 0 -1.5708" xyz="0.1426 0 0"/>
@@ -193,7 +193,7 @@
     <collision>
       <origin rpy="0 0 -0.131" xyz="0.1 0.021 -0.002"/>
       <geometry>
-        <cylinder length="0.2" radius="0.35"/>
+        <box size="0.2 0.07 0.07"/>
       </geometry>
     </collision>
   </link>
@@ -244,12 +244,12 @@
       </geometry>
       <material name="blue"/>
     </visual>
-    <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <geometry>
-        <cylinder length="0.1426" radius="0.035"/>
-      </geometry>
-    </collision>
+    <!-- <collision>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <cylinder radius="0.035" length="0.1426" />
+        </geometry>
+      </collision> -->
   </link>
   <joint name="joint_right_leg_1" type="revolute">
     <origin rpy="1.5708 0 1.5708" xyz="0 -0.0895 0"/>
@@ -271,12 +271,12 @@
       </geometry>
       <material name="green"/>
     </visual>
-    <collision>
-      <origin rpy="1.5708 0 1.5708" xyz="-0.1426 0 0"/>
-      <geometry>
-        <cylinder length="0.2" radius="0.035"/>
-      </geometry>
-    </collision>
+    <!-- <collision>
+        <origin xyz="-0.1426 0 0" rpy="1.5708 0 1.5708" />
+        <geometry>
+          <cylinder radius="0.035" length="0.2" />
+        </geometry>
+      </collision> -->
   </link>
   <joint name="joint_right_leg_2" type="revolute">
     <origin rpy="-1.5708 0 -1.5708" xyz="-0.1426 0 0"/>
@@ -301,7 +301,7 @@
     <collision>
       <origin rpy="0 0 -0.131" xyz="0.1 0.021 -0.002"/>
       <geometry>
-        <cylinder length="0.2" radius="0.035"/>
+        <box size="0.2 0.07 0.07"/>
       </geometry>
     </collision>
   </link>
@@ -381,6 +381,8 @@
       <joint_name>joint_right_leg_1</joint_name>
       <joint_name>joint_left_leg_2</joint_name>
       <joint_name>joint_right_leg_2</joint_name>
+      <joint_name>joint_left_leg_3</joint_name>
+      <joint_name>joint_right_leg_3</joint_name>
       <joint_name>joint_left_leg_4</joint_name>
       <joint_name>joint_right_leg_4</joint_name>
       <use_force_commands>true</use_force_commands>

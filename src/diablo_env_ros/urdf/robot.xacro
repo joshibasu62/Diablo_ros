@@ -65,6 +65,8 @@
       <joint_name>joint_right_leg_1</joint_name>
       <joint_name>joint_left_leg_2</joint_name>
       <joint_name>joint_right_leg_2</joint_name>
+      <joint_name>joint_left_leg_3</joint_name>
+      <joint_name>joint_right_leg_3</joint_name>
       <joint_name>joint_left_leg_4</joint_name>
       <joint_name>joint_right_leg_4</joint_name>
       <use_force_commands>true</use_force_commands>

@@ -1,0 +1,58 @@
+from std_msgs.msg import Float64
+from collections.abc import Callable
+from base_class.base_node_class import DiabloBaseNode
+from base_class.diablo_reinforcement_learning_parameters import (
+    reinforcement_learning_node_parameters,
+)
+
+
+class ReinforcementLearningNode(DiabloBaseNode):
+    def __init__(
+        self,
+        name,
+        max_number_of_episodes=None,
+        max_number_of_steps=None,
+        max_effort_command=None,
+        discount_factor=None,
+        reward=None,
+        optimizer=None,
+        loss_function=None,
+        model=None,
+    ):
+        super().__init__(name)
+        self.param_listener = reinforcement_learning_node_parameters.ParamListener(self)
+        self.parameters = self.param_listener.get_params()
+        self.max_number_of_episodes = (
+            self.parameters.max_number_of_episodes if max_number_of_episodes is None else max_number_of_episodes
+        )
+        self.max_number_of_steps = (
+            self.parameters.max_number_of_steps if max_number_of_steps is None else max_number_of_steps
+        )
+        self.max_effort_command = (
+            self.parameters.max_effort_command if max_effort_command is None else max_effort_command
+        )
+        self.discount_factor = self.parameters.discount_factor if discount_factor is None else discount_factor
+        self.reward = self.parameters.reward if max_number_of_steps is None else reward
+        self.episode = 0
+        self.step = 0
+        self.optimizer = optimizer
+        self.loss_function = loss_function
+        self.model = model
+
+    def is_episode_ended(self) -> bool:
+        return self.step == self.max_number_of_steps
+
+    def create_command(self, action: int) -> Float64:
+        return Float64(data=self.max_effort_command) if action == 0 else Float64(data=-self.max_effort_command)
+
+    def stop_run_when_learning_ended(self):
+        if self.episode == self.max_number_of_episodes:
+            quit()
+
+    def advance_episode_when_finished(self, clean_up_function: Callable[[], None] = None):
+        if self.is_episode_ended() or self.is_simulation_stopped():
+            self.get_logger().info(f"Ended episode: {self.episode} with score: {self.step}")
+            self.episode += 1
+            self.step = 0
+            self.restart_learning_loop()
+            clean_up_function and clean_up_function()

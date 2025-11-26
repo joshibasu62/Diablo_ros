@@ -1,6 +1,14 @@
 from setuptools import find_packages, setup
+from generate_parameter_library_py.setup_helper import generate_parameter_module
 
 package_name = 'base_class'
+
+generate_parameter_module(
+    "diablo_reinforcement_learning_parameters",
+    "base_class/reinforcement_learning_node_parameters.yaml"
+)
+
+
 
 setup(
     name=package_name,

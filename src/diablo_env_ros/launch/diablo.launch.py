@@ -38,19 +38,19 @@ def generate_launch_description():
         output="screen",
     )
 
-    # simulation_control = Node(
-    #     package="simulation_control",
-    #     executable="simulation_control_node",
-    #     parameters=[{"use_sim_time": True}],
-    #     output="screen",
-    # )
+    simulation_control = Node(
+        package="simulation_control",
+        executable="simulation_control_node",
+        parameters=[{"use_sim_time": True}],
+        output="screen",
+    )
 
-    # simulation_observation = Node(
-    #     package="cart_pole_observation",
-    #     executable="cart_pole_observation_node",
-    #     parameters=[{"use_sim_time": True}],
-    #     output="screen",
-    # )
+    simulation_observation = Node(
+        package="subscriber_to_observation_messages",
+        executable="subscriber",
+        parameters=[{"use_sim_time": True}],
+        output="screen",
+    )
 
     rviz_launch_arg = DeclareLaunchArgument(
         'rviz', default_value='true',
@@ -73,5 +73,5 @@ def generate_launch_description():
 
 
     return LaunchDescription(
-        [gazebo, gazebo_spawn_robot, robot_state_publisher, gz_bridge, rviz_launch_arg, rviz_node]
+        [gazebo, gazebo_spawn_robot, robot_state_publisher, gz_bridge, rviz_launch_arg, rviz_node, simulation_control, simulation_observation]
     )

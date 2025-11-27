@@ -28,7 +28,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "venv_check = base_class.venv_check:main"
+            "venv_check = base_class.venv_check:main",
             "diablo_basic_policy_node = base_class.diablo_basic_policy_node:main",
         ],
     },

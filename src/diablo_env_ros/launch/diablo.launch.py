@@ -10,14 +10,16 @@ from launch.substitutions import LaunchConfiguration
 def generate_launch_description():
     gazebo = IncludeLaunchDescription(
         os.path.join(get_package_share_directory("ros_gz_sim"), "launch", "gz_sim.launch.py"),
-        launch_arguments=[("gz_args", ["-r -v 4 empty.sdf"])],
+        launch_arguments=[("gz_args", ["-r -v 4 empty.sdf "])],
     )
 
     gazebo_spawn_robot = Node(
         package="ros_gz_sim",
         executable="create",
         name="spawn_cart_pole",
-        arguments=["-name", "diablo", "-topic", "robot_description"],
+        arguments=["-name", "diablo", "-topic", "robot_description"
+                #    "-x", "0", "-y", "0", "-z", "0.5"
+                   ],
         output="screen",
     )
 

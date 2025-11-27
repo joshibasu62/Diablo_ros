@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="tita">
   <xacro:macro name="description">
-    <link name="world"/>
+    <!-- <link name="world"/> -->
     <link name="base_link">
       <inertial>
         <origin xyz="0.020452 3.5457E-06 0.01871" rpy="0 0 0" />
@@ -16,18 +16,18 @@
         <material name="black"/>
       </visual>
       <collision>
-        <origin xyz="0 0 0.017" rpy="0 0 0" />
+        <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <box size="0.47 0.3 0.19" />
+          <mesh filename="file://$(find diablo_env_ros)/meshes/base_link.STL" />
         </geometry>
       </collision>
     </link>
-    <joint name="base_link_joint" type="fixed">
-      <origin rpy="0 0 0" xyz="0 0 0.35"/>
+    <!-- <joint name="base_link_joint" type="fixed">
+      <origin rpy="0 0 0" xyz="0 0 0.41"/>
       <parent link="world"/>
       <child link="base_link"/>
       <axis xyz="0 0 0"/>
-    </joint>
+    </joint> -->
 
 
     <link name="spad">
@@ -120,12 +120,12 @@
         </geometry>
         <material name="blue"/>
       </visual>
-      <!-- <collision>
+      <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <cylinder radius="0.035" length="0.1426" />
+          <mesh filename="file://$(find diablo_env_ros)/meshes/left_leg_1.STL" />
         </geometry>
-      </collision> -->
+      </collision>
     </link>
     <joint name="joint_left_leg_1" type="revolute">
       <origin xyz="0 0.0895 0" rpy="1.5708 0 1.5708" />
@@ -148,12 +148,12 @@
         </geometry>
         <material name="green"/>
       </visual>
-      <!-- <collision>
-        <origin xyz="-0.1426 0 0" rpy="1.5708 0 1.5708" />
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <cylinder radius="0.035" length="0.2" />
+          <mesh filename="file://$(find diablo_env_ros)/meshes/left_leg_2.STL" />
         </geometry>
-      </collision> -->
+      </collision>
     </link>
     <joint name="joint_left_leg_2" type="revolute">
       <origin xyz="0.1426 0 0" rpy="-1.5708 0 -1.5708" />
@@ -177,9 +177,9 @@
         <material name="grey"/>
       </visual>
       <collision>
-        <origin xyz="0.1 0.021 -0.002" rpy="0 0 -0.131" />
+        <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <box size="0.2 0.07 0.07" />
+          <mesh filename="file://$(find diablo_env_ros)/meshes/left_leg_3.STL" />
         </geometry>
       </collision>
     </link>
@@ -207,7 +207,7 @@
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <cylinder radius="0.0925" length="0.034" />
+          <mesh filename="file://$(find diablo_env_ros)/meshes/left_leg_4.STL" />
         </geometry>
       </collision>
     </link>
@@ -232,12 +232,12 @@
         </geometry>
         <material name="blue"/>
       </visual>
-      <!-- <collision>
+      <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <cylinder radius="0.035" length="0.1426" />
+          <mesh filename="file://$(find diablo_env_ros)/meshes/right_leg_1.STL" />
         </geometry>
-      </collision> -->
+      </collision>
     </link>
     <joint name="joint_right_leg_1" type="revolute">
       <origin xyz="0 -0.0895 0" rpy="1.5708 0 1.5708" />
@@ -260,12 +260,12 @@
         </geometry>
         <material name="green"/>
       </visual>
-      <!-- <collision>
-        <origin xyz="-0.1426 0 0" rpy="1.5708 0 1.5708" />
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <cylinder radius="0.035" length="0.2" />
+          <mesh filename="file://$(find diablo_env_ros)/meshes/right_leg_2.STL" />
         </geometry>
-      </collision> -->
+      </collision>
     </link>
     <joint name="joint_right_leg_2" type="revolute">
       <origin xyz="-0.1426 0 0" rpy="-1.5708 0 -1.5708" />
@@ -289,9 +289,9 @@
         <material name="grey"/>
       </visual>
       <collision>
-        <origin xyz="0.1 0.021 -0.002" rpy="0 0 -0.131" />
+        <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <box size="0.2 0.07 0.07" />
+          <mesh filename="file://$(find diablo_env_ros)/meshes/right_leg_3.STL" />
         </geometry>
       </collision>
     </link>
@@ -319,7 +319,7 @@
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <cylinder radius="0.0925" length="0.034" />
+          <mesh filename="file://$(find diablo_env_ros)/meshes/right_leg_4.STL" />
         </geometry>
       </collision>
     </link>

@@ -55,7 +55,7 @@ def generate_launch_description():
         arguments=[
             "-name", "robot",   
             "-topic", "robot_description",
-            "-x", "0.0", "-y", "0.0", "-z", "0.5", "-Y", "0.0",  # Initial spawn position
+            "-x", "0.0", "-y", "0.0", "-z", "0.0", "-Y", "0.0",  # Initial spawn position
             # "<gravity>false</gravity>"
         ],
         output="screen",
@@ -91,7 +91,8 @@ def generate_launch_description():
             "/joint_states@sensor_msgs/msg/JointState@gz.msgs.Model",
             "/tf@tf2_msgs/msg/TFMessage@gz.msgs.Pose_V",
             "/effort_cmd@std_msgs/msg/Float64@gz.msgs.Double",
-            "/imu@sensor_msgs/msg/Imu@gz.msgs.IMU"
+            "/imu@sensor_msgs/msg/Imu@gz.msgs.IMU",
+            "/down_lidar@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan",
         ],
         output="screen",
         parameters=[
@@ -137,6 +138,20 @@ def generate_launch_description():
     launchDescriptionObject.add_action(gz_bridge_node)
      
     launchDescriptionObject.add_action(rviz_node)
+    # launchDescriptionObject.add_action(TimerAction(actions=[spawn_urdf_node],period=5.0))
+    # launchDescriptionObject.add_action(TimerAction(actions=[robot_state_publisher_node],period=5.0))
+    
+    
+    # # Add controllers with delays
+    
+    
+    # # Spawn robot after controllers are ready
+
+
+    
+    # launchDescriptionObject.add_action(TimerAction(actions=[gz_bridge_node],period=5.0))
+     
+    # launchDescriptionObject.add_action(TimerAction(actions=[rviz_node],period=5.0))
     # launchDescriptionObject.add_action(joint_state_publisher_gui_node)
 
     return launchDescriptionObject

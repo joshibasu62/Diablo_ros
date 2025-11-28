@@ -23,7 +23,7 @@ class reinforcement_learning_node_parameters:
 
         max_number_of_episodes = 100
         max_number_of_steps = 500
-        max_effort_command = 5.0
+        max_effort_command = [5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0]
         discount_factor = 0.95
         reward = 1
 
@@ -131,7 +131,7 @@ class reinforcement_learning_node_parameters:
                 self.node_.declare_parameter(self.prefix_ + "max_number_of_steps", parameter, descriptor)
 
             if not self.node_.has_parameter(self.prefix_ + "max_effort_command"):
-                descriptor = ParameterDescriptor(description="Effort command sent to cart.", read_only = True)
+                descriptor = ParameterDescriptor(description="Effort command sent to robot.", read_only = True)
                 parameter = updated_params.max_effort_command
                 self.node_.declare_parameter(self.prefix_ + "max_effort_command", parameter, descriptor)
 

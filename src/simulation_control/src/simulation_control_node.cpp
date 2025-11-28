@@ -86,7 +86,7 @@ public:
 
   gz::transport::Node node_{};
   int counter_{};
-  std::string robot_name_{"diablo"};
+  std::string robot_name_{"robot"};
   std::string robot_description_{};
   const std::string service_create_{"/world/empty/create"};
   const std::string service_remove_{"/world/empty/remove"};

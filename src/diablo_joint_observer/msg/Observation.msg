@@ -17,3 +17,5 @@ float64 right_leg_1_vel
 float64 right_leg_2_vel
 float64 right_leg_3_vel
 float64 right_leg_4_vel
+
+float64[] lidar_ranges

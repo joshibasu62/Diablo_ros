@@ -10,10 +10,10 @@ reinforcement_learning_node_parameters:
     read_only: true
     description: "Max number of steps."
   max_effort_command:
-    type: double
-    default_value: 5.0
+    type: double_array_fixed
+    default_value: [5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0]
     read_only: true
-    description: "Effort command sent to cart."
+    description: "Effort command sent to robot."
   discount_factor:
     type: double
     default_value: 0.95

@@ -1,4 +1,4 @@
-from std_msgs.msg import Float64
+from std_msgs.msg import Float64, Float64MultiArray
 from collections.abc import Callable
 from base_class.base_node_class import DiabloBaseNode
 from base_class.diablo_reinforcement_learning_parameters import (
@@ -42,15 +42,29 @@ class ReinforcementLearningNode(DiabloBaseNode):
     def is_episode_ended(self) -> bool:
         return self.step == self.max_number_of_steps
 
-    def create_command(self, action: int) -> Float64:
-        return Float64(data=self.max_effort_command) if action == 0 else Float64(data=-self.max_effort_command)
+    def create_command(self, action: int) -> Float64MultiArray:
+        msg = Float64MultiArray()
+
+        if action == 0:
+            # use +max_effort for all 8 joints
+            msg.data = self.max_effort_command
+        else:
+            # use -max_effort for all 8 joints
+            msg.data = [-x for x in self.max_effort_command]
+
+        return msg
 
     def stop_run_when_learning_ended(self):
         if self.episode == self.max_number_of_episodes:
             quit()
 
     def advance_episode_when_finished(self, clean_up_function: Callable[[], None] = None):
-        if self.is_episode_ended() or self.is_simulation_stopped():
+        
+        should_restart = self.is_episode_ended() or self.is_simulation_stopped()
+    
+        self.get_logger().info(f"Checking episode end: Step={self.step}, Truncated={self.is_simulation_stopped()}, ShouldRestart={should_restart}")
+        
+        if should_restart:
             self.get_logger().info(f"Ended episode: {self.episode} with score: {self.step}")
             self.episode += 1
             self.step = 0

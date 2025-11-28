@@ -8,7 +8,19 @@ class DiabloReinforcementBasicPolicy(ReinforcementLearningNode):
         self.create_timer(0.05, self.run)
 
     def run_one_step(self):
-        self.take_action(self.create_command(int(self.get_diablo_observations()[1] < 0)))
+        
+        current_obs = self.get_diablo_observations()
+        ground_distance = current_obs[17]
+        
+        self.get_logger().info(f"Step {self.step}: Ground distance = {ground_distance}, Truncated = {self.is_simulation_stopped()}")
+
+
+        if self.is_simulation_stopped():
+            self.get_logger().info("Simulation truncated. Restarting...")
+            self.restart_learning_loop()
+            return
+        
+        self.take_action(self.create_command(int(self.get_diablo_observations()[17] < 0.35)))
         self.step += 1
 
     def run(self):

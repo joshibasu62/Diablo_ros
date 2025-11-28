@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from sensor_msgs.msg import JointState
+from sensor_msgs.msg import JointState, LaserScan
 from diablo_joint_observer.msg import Observation
 
 class DiabloObserver(Node):
@@ -21,6 +21,18 @@ class DiabloObserver(Node):
             self.joint_state_callback,
             10
         )
+
+        self.lidar_subscriber = self.create_subscription(
+            LaserScan,
+            'lidar',
+            self.lidar_callback,
+            10
+        )   
+        self.latest_lidar_ranges = []
+
+    def lidar_callback(self, msg: LaserScan):
+        self.latest_lidar_ranges = list(msg.ranges)
+
 
     def joint_state_callback(self, msg: JointState):
         # Find indices of required joints
@@ -62,6 +74,9 @@ class DiabloObserver(Node):
         diablo_observation.right_leg_3_vel = msg.velocity[joint_right_leg_3_index]
         diablo_observation.left_leg_4_vel = msg.velocity[joint_left_leg_4_index]
         diablo_observation.right_leg_4_vel = msg.velocity[joint_right_leg_4_index]
+
+        if self.latest_lidar_ranges:
+            diablo_observation.lidar_ranges = self.latest_lidar_ranges
 
         # Publish
         self.diablo_state_publisher.publish(diablo_observation)

@@ -70,7 +70,7 @@
     <child link="base_link"/>
     <origin rpy="0 0 0" xyz="0 0 0.4925"/>
   </joint>
-  <link name="down_lidar_link">
+  <link name="lidar_frame">
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
@@ -89,11 +89,11 @@
       <inertia ixx="0.00001" ixy="0.0" ixz="0.0" iyy="0.00001" iyz="0.0" izz="0.00001"/>
     </inertial>
   </link>
-  <joint name="down_lidar_joint" type="fixed">
+  <joint name="lidar_frame_joint" type="fixed">
     <parent link="base_link"/>
     <!-- or whichever link is below -->
-    <child link="down_lidar_link"/>
-    <origin rpy="0 1.5708 0" xyz="0 0 0.3"/>
+    <child link="lidar_frame"/>
+    <origin rpy="0 1.5708 0" xyz="0 0 0"/>
     <!-- adjust height so it’s just below robot -->
   </joint>
   <link name="spad">
@@ -186,7 +186,7 @@
     <parent link="base_link"/>
     <child link="left_leg_1"/>
     <axis xyz="0 0 1"/>
-    <limit effort="100" lower="-0.785398" upper="0.785398" velocity="100"/>
+    <limit effort="100" lower="-0.1" upper="0.1" velocity="100"/>
   </joint>
   <link name="left_leg_2">
     <inertial>
@@ -294,7 +294,7 @@
     <parent link="base_link"/>
     <child link="right_leg_1"/>
     <axis xyz="0 0 1"/>
-    <limit effort="100" lower="-0.785398" upper="0.785398" velocity="100"/>
+    <limit effort="100" lower="-0.1" upper="0.1" velocity="100"/>
   </joint>
   <link name="right_leg_2">
     <inertial>
@@ -448,37 +448,31 @@
       <gz_frame_id>imu_link</gz_frame_id>
     </sensor>
   </gazebo>
-  <gazebo reference="down_lidar_link">
-    <sensor name="down_lidar" type="ray">
-      <pose>0 0 0 0 0 0</pose>
+  <gazebo reference="lidar_frame">
+    <sensor name="gpu_lidar" type="gpu_lidar">
+      &quot;
+        
+      <pose relative_to="lidar_frame">0 0 0 0 0 0</pose>
+      <topic>lidar</topic>
+      <gz_frame_id>lidar_frame</gz_frame_id>
+      <update_rate>10</update_rate>
       <ray>
         <scan>
           <horizontal>
-            <samples>1</samples>
-            <resolution>1</resolution>
-            <min_angle>0</min_angle>
-            <max_angle>0</max_angle>
-          </horizontal>
-          <vertical>
-            <samples>1</samples>
+            <samples>3</samples>
             <resolution>1</resolution>
             <min_angle>-1.5708</min_angle>
-            <!-- Pointing straight down -->
-            <max_angle>-1.5708</max_angle>
-          </vertical>
+            <max_angle>1.5708</max_angle>
+          </horizontal>
         </scan>
         <range>
-          <min>0.05</min>
-          <max>5.0</max>
+          <min>0.08</min>
+          <max>10.0</max>
           <resolution>0.01</resolution>
         </range>
       </ray>
-      <always_on>true</always_on>
-      <update_rate>20</update_rate>
+      <always_on>1</always_on>
       <visualize>true</visualize>
-      <plugin filename="libgz-sim-sensors-system.so" name="gz::sim::systems::Sensors">
-        <topic>/down_lidar</topic>
-      </plugin>
     </sensor>
   </gazebo>
 </robot>

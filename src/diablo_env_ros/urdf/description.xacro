@@ -46,7 +46,7 @@
 
 
     
-    <link name="down_lidar_link">
+    <link name="lidar_frame">
       <visual>
         <origin rpy="0 0 0" xyz="0 0 0"/>
         <geometry>
@@ -66,10 +66,10 @@
       </inertial>
     </link>
 
-    <joint name="down_lidar_joint" type="fixed">
+    <joint name="lidar_frame_joint" type="fixed">
       <parent link="base_link"/>      <!-- or whichever link is below -->
-      <child link="down_lidar_link"/>
-      <origin xyz="0 0 0.3" rpy="0 1.5708 0"/> <!-- adjust height so it’s just below robot -->
+      <child link="lidar_frame"/>
+      <origin xyz="0 0 0" rpy="0 1.5708 0"/> <!-- adjust height so it’s just below robot -->
     </joint>
 
 
@@ -177,7 +177,7 @@
       <parent link="base_link" />
       <child link="left_leg_1" />
       <axis xyz="0 0 1" />
-      <limit lower="-0.785398" upper="0.785398" effort="100" velocity="100" />
+      <limit lower="-0.1" upper="0.1" effort="100" velocity="100" />
     </joint>
 
     <link name="left_leg_2">
@@ -289,7 +289,7 @@
       <parent link="base_link" />
       <child link="right_leg_1" />
       <axis xyz="0 0 1" />
-      <limit lower="-0.785398" upper="0.785398" effort="100" velocity="100" />
+      <limit lower="-0.1" upper="0.1" effort="100" velocity="100" />
     </joint>
 
     <link name="right_leg_2">

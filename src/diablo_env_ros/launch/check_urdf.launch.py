@@ -92,7 +92,7 @@ def generate_launch_description():
             "/tf@tf2_msgs/msg/TFMessage@gz.msgs.Pose_V",
             "/effort_cmd@std_msgs/msg/Float64@gz.msgs.Double",
             "/imu@sensor_msgs/msg/Imu@gz.msgs.IMU",
-            "/down_lidar@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan",
+            "/lidar@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan",
         ],
         output="screen",
         parameters=[

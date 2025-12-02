@@ -1,4 +1,4 @@
-reinforcement_learning_node_parameters:
+Q_learning_base_parameters:
   max_number_of_episodes:
     type: int
     default_value: 100

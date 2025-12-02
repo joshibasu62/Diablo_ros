@@ -15,7 +15,7 @@ from generate_parameter_library_py.python_validators import ParameterValidators
 
 
 
-class reinforcement_learning_node_parameters:
+class Q_learning_base_parameters:
 
     class Params:
         # for detecting if the parameter struct has been updated
@@ -32,9 +32,9 @@ class reinforcement_learning_node_parameters:
     class ParamListener:
         def __init__(self, node, prefix=""):
             self.prefix_ = prefix
-            self.params_ = reinforcement_learning_node_parameters.Params()
+            self.params_ = Q_learning_base_parameters.Params()
             self.node_ = node
-            self.logger_ = rclpy.logging.get_logger("reinforcement_learning_node_parameters." + prefix)
+            self.logger_ = rclpy.logging.get_logger("Q_learning_base_parameters." + prefix)
 
             self.declare_params()
 

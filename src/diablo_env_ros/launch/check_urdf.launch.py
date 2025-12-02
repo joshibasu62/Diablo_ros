@@ -128,24 +128,22 @@ def generate_launch_description():
     launchDescriptionObject.add_action(robot_state_publisher_node)
     
     
-    # Add controllers with delays
     
     
-    # Spawn robot after controllers are ready
-
+    
+    
 
     
     launchDescriptionObject.add_action(gz_bridge_node)
      
     launchDescriptionObject.add_action(rviz_node)
+
+    #if want delay
+
     # launchDescriptionObject.add_action(TimerAction(actions=[spawn_urdf_node],period=5.0))
     # launchDescriptionObject.add_action(TimerAction(actions=[robot_state_publisher_node],period=5.0))
     
     
-    # # Add controllers with delays
-    
-    
-    # # Spawn robot after controllers are ready
 
 
     

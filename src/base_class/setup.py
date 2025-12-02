@@ -8,6 +8,11 @@ generate_parameter_module(
     "base_class/reinforcement_learning_node_parameters.yaml"
 )
 
+generate_parameter_module(
+    "Q_learning_base_parameters",
+    "base_class/Q_learning_base_parameters.yaml"
+)
+
 
 
 setup(
@@ -30,6 +35,7 @@ setup(
         'console_scripts': [
             "venv_check = base_class.venv_check:main",
             "diablo_basic_policy_node = base_class.diablo_basic_policy_node:main",
+            "q_learning = base_class.q_learning:main",
         ],
     },
 )

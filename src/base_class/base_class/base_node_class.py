@@ -73,8 +73,8 @@ class DiabloBaseNode(Node):
 
     def update_simulation_status(self):
 
-        current_distance = self.diablo_observations[16]
-        self.get_logger().info(f"Ground distance: {current_distance}, Truncated: {self.is_truncated}")
+        # current_distance = self.diablo_observations[16]
+        # self.get_logger().info(f"Ground distance: {current_distance}, Truncated: {self.is_truncated}")
         
         if self.diablo_observations[16] < self.height_limit:
             self.is_truncated = True

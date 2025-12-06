@@ -20,12 +20,12 @@ def generate_launch_description():
     gazebo_models_path = "/home/david/gazebo_models"
     os.environ["GZ_SIM_RESOURCE_PATH"] += os.pathsep + gazebo_models_path
 
-    # set_headless_env = [
-    #     SetEnvironmentVariable(name='GZ_SIM_HEADLESS', value='1'),
-    #     SetEnvironmentVariable(name='GZ_SIM_RENDER_ENGINE', value='ogre2'),
-    #     SetEnvironmentVariable(name='DISPLAY', value=':0'),
-    #     # SetEnvironmentVariable(name='LIBGL_ALWAYS_SOFTWARE', value='1'),
-    # ]
+    set_headless_env = [
+        SetEnvironmentVariable(name='GZ_SIM_HEADLESS', value='1'),
+        SetEnvironmentVariable(name='GZ_SIM_RENDER_ENGINE', value='ogre2'),
+        SetEnvironmentVariable(name='DISPLAY', value=':0'),
+        # SetEnvironmentVariable(name='LIBGL_ALWAYS_SOFTWARE', value='1'),
+    ]
 
     gazebo_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -38,8 +38,8 @@ def generate_launch_description():
                     'worlds',
                     LaunchConfiguration('world')
                 ]),
-                # TextSubstitution(text=' -s -r')
-                TextSubstitution(text=' -r -v -v1')
+                TextSubstitution(text=' -s -r')
+                # TextSubstitution(text=' -r -v -v1')
             ],
             'on_exit_shutdown': 'true'
         }.items()
@@ -49,8 +49,8 @@ def generate_launch_description():
 
     launchDescriptionObject.add_action(world_arg)
 
-    # for env_var in set_headless_env:
-    #     launchDescriptionObject.add_action(env_var)
+    for env_var in set_headless_env:
+        launchDescriptionObject.add_action(env_var)
 
     launchDescriptionObject.add_action(gazebo_launch)
 

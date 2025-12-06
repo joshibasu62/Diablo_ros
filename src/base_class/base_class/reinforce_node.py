@@ -13,7 +13,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Policy Network for Continuous Actions
 # -------------------------
 class ContinuousPolicy(nn.Module):
-    def __init__(self, state_size, action_size, hidden_size=256):
+    def __init__(self, state_size, action_size, hidden_size=128):
         super().__init__()
         self.fc1 = nn.Linear(state_size, hidden_size)
         self.fc2 = nn.Linear(hidden_size, hidden_size)
@@ -24,8 +24,8 @@ class ContinuousPolicy(nn.Module):
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
         mean = self.mean_head(x)
-        std = torch.exp(self.log_std)
-        return mean, std
+        # std = torch.exp(self.log_std)
+        return mean, self.log_std
 
     def act(self, state):
         # Forward pass
@@ -90,7 +90,7 @@ class ReinforceContinuousNode(ReinforcementLearningNode):
         action_tensor, log_prob = self.policy.act(state)
         
         #for debugging
-        print(action_tensor)
+        # print(action_tensor)
 
         # Send to Gazebo
         msg = self.create_continuous_command(action_tensor)
@@ -103,7 +103,7 @@ class ReinforceContinuousNode(ReinforcementLearningNode):
         self.rewards.append(reward)
 
         self.step += 1
-        self.get_logger().info(f"Step {self.step}, Reward: {reward:.3f}")
+        # self.get_logger().info(f"Step {self.step}, Reward: {reward:.3f}")
 
     # -------------------------
     # Reward function
@@ -149,10 +149,17 @@ class ReinforceContinuousNode(ReinforcementLearningNode):
         loss.backward()
         self.optimizer.step()
 
+        #total steps in episode
+        self.get_logger().info(f"Total steps in episode: {len(self.rewards)}")
+
+        #total reward in episode
+        self.get_logger().info(f"Total reward in episode: {sum(self.rewards):.3f}")
+
         self.get_logger().info(f"Episode {self.episode} finished. Loss: {loss.item():.3f}")
 
         # Clear storage
-        self.states, self.x, self.rewards = [], [], []
+        self.states, self.log_probs, self.rewards = [], [], []
+        
         self.step = 0
         self.episode += 1
 

@@ -19,7 +19,7 @@ class DiabloBaseNode(Node):
 
         self.simulation_reset_service_client: Client = self.create_client(Empty, "restart_sim_service")
         self.effort_command_publisher: Publisher = self.create_publisher(Float64MultiArray, "effort_cmd", 10)
-        self.diablo_observations: list[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.diablo_observations: list[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.lidar_data = []
         self.is_truncated: bool = False
         # self.UPPER_Link_limit: float = 1.4
@@ -51,9 +51,8 @@ class DiabloBaseNode(Node):
         self.diablo_observations[14] = diablo_observation.left_leg_4_vel
         self.diablo_observations[15] = diablo_observation.right_leg_4_vel
         self.lidar_data = diablo_observation.lidar_ranges
-        self.diablo_observations[16] = self.lidar_data[0]
-        self.diablo_observations[17] = self.lidar_data[1]
-        self.diablo_observations[18] = self.lidar_data[2]
+        self.diablo_observations[16] = self.lidar_data[1]
+        
         
 
         self.update_simulation_status()
@@ -68,16 +67,16 @@ class DiabloBaseNode(Node):
         self.effort_command_publisher.publish(action)
 
     def reset_observation(self):
-        self.diablo_observations = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.diablo_observations = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.lidar_data = []
         self.is_truncated = False
 
     def update_simulation_status(self):
 
-        current_distance = self.diablo_observations[17]
+        current_distance = self.diablo_observations[16]
         self.get_logger().info(f"Ground distance: {current_distance}, Truncated: {self.is_truncated}")
         
-        if self.diablo_observations[17] < self.height_limit:
+        if self.diablo_observations[16] < self.height_limit:
             self.is_truncated = True
     
 

@@ -41,7 +41,7 @@
   </link>
   <link name="base_link">
     <inertial>
-      <origin rpy="0 0 0" xyz="0.020452 3.5457E-06 0.01871"/>
+      <origin rpy="0 0 0" xyz="-0.020452 3.5457E-06 0.01871"/>
       <mass value="13.2"/>
       <inertia ixx="0.061855" ixy="-2.6029E-05" ixz="0.00081082" iyy="0.036934" iyz="-1.7269E-05" izz="0.071232"/>
     </inertial>
@@ -55,7 +55,8 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <box size="0.47 0.3 0.19"/>
+        <sphere radius="0.15"/>
+        <!-- <box size="0.47 0.3 0.19"/> -->
         <!-- <mesh filename="file://$(find diablo_env_ros)/meshes/base_link.STL" /> -->
       </geometry>
     </collision>
@@ -97,46 +98,54 @@
     <origin rpy="0 1.5708 0" xyz="0 0 0"/>
     <!-- adjust height so it’s just below robot -->
   </joint>
-  <link name="spad">
+  <!-- <link name="spad">
     </link>
-  <joint name="joint_spad" type="fixed">
-    <origin rpy="2.199 0 1.5708" xyz="0.24052 -0.0019 0.064455"/>
-    <parent link="base_link"/>
-    <child link="spad"/>
-    <axis xyz="0 0 0"/>
-  </joint>
-  <link name="spad1">
+    <joint name="joint_spad" type="fixed">
+      <origin xyz="0.24052 -0.0019 0.064455" rpy="2.199 0 1.5708" />
+      <parent link="base_link" />
+      <child link="spad" />
+      <axis xyz="0 0 0" />
+    </joint>
+
+
+    <link name="spad1">
     </link>
-  <joint name="joint_spad1" type="fixed">
-    <origin rpy="2.632 0 1.5708" xyz="0.21953 -0.0019 -0.030142"/>
-    <parent link="base_link"/>
-    <child link="spad1"/>
-    <axis xyz="0 0 0"/>
-  </joint>
-  <link name="left_camera">
+    <joint name="joint_spad1" type="fixed">
+      <origin xyz="0.21953 -0.0019 -0.030142" rpy="2.632 0 1.5708" />
+      <parent link="base_link" />
+      <child link="spad1" />
+      <axis xyz="0 0 0" />
+    </joint>
+
+
+    <link name="left_camera">
     </link>
-  <joint name="joint_left_camera" type="fixed">
-    <origin rpy="1.5708 0 1.5708" xyz="0.23416 0.075 0.04036"/>
-    <parent link="base_link"/>
-    <child link="left_camera"/>
-    <axis xyz="0 0 0"/>
-  </joint>
-  <link name="ch201">
+    <joint name="joint_left_camera" type="fixed">
+      <origin xyz="0.23416 0.075 0.04036" rpy="1.5708 0 1.5708" />
+      <parent link="base_link" />
+      <child link="left_camera" />
+      <axis xyz="0 0 0" />
+    </joint>
+
+
+    <link name="ch201">
     </link>
-  <joint name="joint_ch201" type="fixed">
-    <origin rpy="1.1693 0 1.5708" xyz="0.23782 0 0.018636"/>
-    <parent link="base_link"/>
-    <child link="ch201"/>
-    <axis xyz="0 0 0"/>
-  </joint>
-  <link name="right_camara">
+    <joint name="joint_ch201" type="fixed">
+      <origin xyz="0.23782 0 0.018636" rpy="1.1693 0 1.5708" />
+      <parent link="base_link" />
+      <child link="ch201" />
+      <axis xyz="0 0 0" />
+    </joint>
+
+
+    <link name="right_camara">
     </link>
-  <joint name="joint_right_camera" type="fixed">
-    <origin rpy="1.5708 0 1.5708" xyz="0.23416 -0.075001 0.04036"/>
-    <parent link="base_link"/>
-    <child link="right_camara"/>
-    <axis xyz="0 0 0"/>
-  </joint>
+    <joint name="joint_right_camera" type="fixed">
+      <origin xyz="0.23416 -0.075001 0.04036" rpy="1.5708 0 1.5708" />
+      <parent link="base_link" />
+      <child link="right_camara" />
+      <axis xyz="0 0 0" />
+    </joint> -->
   <link name="imu_link">
     <inertial>
       <mass value="0.001"/>
@@ -202,12 +211,13 @@
       </geometry>
       <material name="green"/>
     </visual>
-    <!-- <collision>
-        <origin xyz="0 0 0" rpy="0 0 0" />
-        <geometry>
-          <mesh filename="file://$(find diablo_env_ros)/meshes/left_leg_2.STL" />
-        </geometry>
-      </collision> -->
+    <collision>
+      <origin rpy="0 0 0" xyz="0.1 0 0"/>
+      <geometry>
+        <box size="0.2 0.07 0.05"/>
+        <mesh filename="file:///home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/meshes/left_leg_2.STL"/>
+      </geometry>
+    </collision>
   </link>
   <joint name="joint_left_leg_2" type="revolute">
     <origin rpy="-1.5708 0 -1.5708" xyz="0.1426 0 0"/>
@@ -313,12 +323,13 @@
       </geometry>
       <material name="green"/>
     </visual>
-    <!-- <collision>
-        <origin xyz="0 0 0" rpy="0 0 0" />
-        <geometry>
-          <mesh filename="file://$(find diablo_env_ros)/meshes/right_leg_2.STL" />
-        </geometry>
-      </collision> -->
+    <collision>
+      <origin rpy="0 0 0" xyz="0.1 0 0"/>
+      <geometry>
+        <box size="0.2 0.07 0.05"/>
+        <mesh filename="file:///home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/meshes/right_leg_2.STL"/>
+      </geometry>
+    </collision>
   </link>
   <joint name="joint_right_leg_2" type="revolute">
     <origin rpy="-1.5708 0 -1.5708" xyz="-0.1426 0 0"/>

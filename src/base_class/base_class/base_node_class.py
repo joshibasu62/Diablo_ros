@@ -92,7 +92,7 @@ class DiabloBaseNode(Node):
         # current_distance = self.diablo_observations[16]
         # self.get_logger().info(f"Ground distance: {current_distance}, Truncated: {self.is_truncated}")
         
-        if self.diablo_observations[16] < self.height_limit or self.diablo_observations[17] < 0.174533 or self.diablo_observations[18] < 0.349066:
+        if self.diablo_observations[16] < 0.0:
             self.is_truncated = True
     
 

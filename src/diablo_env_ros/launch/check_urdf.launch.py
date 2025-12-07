@@ -55,7 +55,7 @@ def generate_launch_description():
         arguments=[
             "-name", "robot",   
             "-topic", "robot_description",
-            # "-x", "0.0", "-y", "0.0", "-z", "0.0", "-Y", "0.0",  # Initial spawn position
+            # "-x", "0.0", "-y", "0.0", "-z", "0.7", "-Y", "0.0",  # Initial spawn position
             # "<gravity>false</gravity>"
         ],
         output="screen",

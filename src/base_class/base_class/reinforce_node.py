@@ -103,11 +103,12 @@ class ReinforceContinuousNode(ReinforcementLearningNode):
     # Reward function
     
     def compute_reward(self):
-        # Example: reward for staying above height limit
+        reward = 0.0
+        # reward for staying above height limit and small roll/pitch
         height = self.get_diablo_observations()[16]
         roll = self.get_diablo_observations()[17]
         pitch = self.get_diablo_observations()[18]
-        if height < self.height_limit or roll < 0.174533 or pitch < 0.349066:
+        if height < self.height_limit or roll > 0.174533 or pitch > 0.349066:
             return -1.0
         else:
             return 0.1

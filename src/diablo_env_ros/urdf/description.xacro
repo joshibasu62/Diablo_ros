@@ -178,7 +178,7 @@
       <parent link="base_link" />
       <child link="left_leg_1" />
       <axis xyz="0 0 1" />
-      <limit lower="-0.1" upper="0.1" effort="100" velocity="100" />
+      <limit lower="-0.7854" upper="0.7854" effort="100" velocity="100" />
     </joint>
 
     <link name="left_leg_2">

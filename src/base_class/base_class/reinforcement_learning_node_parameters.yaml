@@ -1,12 +1,12 @@
 reinforcement_learning_node_parameters:
   max_number_of_episodes:
     type: int
-    default_value: 100
+    default_value: 1000
     read_only: true
     description: "Max number of episodes."
   max_number_of_steps:
     type: int
-    default_value: 500
+    default_value: 250
     read_only: true
     description: "Max number of steps."
   max_effort_command:

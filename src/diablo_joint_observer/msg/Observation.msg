@@ -19,3 +19,5 @@ float64 right_leg_3_vel
 float64 right_leg_4_vel
 
 float64[] lidar_ranges
+
+float64[] imu_orientation

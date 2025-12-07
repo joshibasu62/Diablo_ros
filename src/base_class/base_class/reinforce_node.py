@@ -9,46 +9,42 @@ import torch.nn.functional as F
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-# -------------------------
+
 # Policy Network for Continuous Actions
-# -------------------------
+
 class ContinuousPolicy(nn.Module):
     def __init__(self, state_size, action_size, hidden_size=128):
         super().__init__()
         self.fc1 = nn.Linear(state_size, hidden_size)
         self.fc2 = nn.Linear(hidden_size, hidden_size)
         self.mean_head = nn.Linear(hidden_size, action_size)
-        self.log_std = nn.Parameter(torch.zeros(action_size))  # learnable log_std for all actions
+        self.log_std = nn.Parameter(torch.zeros(action_size)) 
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
         mean = self.mean_head(x)
-        # std = torch.exp(self.log_std)
         return mean, self.log_std
 
     def act(self, state):
         # Forward pass
         mean, log_std = self.forward(state)
         
-        # Ensure numerical stability
         mean = torch.clamp(torch.nan_to_num(mean, nan=0.0, posinf=10.0, neginf=-10.0), -10, 10)
-        std = F.softplus(log_std) + 1e-3  # Softplus ensures positive std
+        std = F.softplus(log_std) + 1e-3  
         std = torch.clamp(torch.nan_to_num(std, nan=1e-3, posinf=1.0, neginf=1e-3), 1e-3, 1.0)
         
         # Create Normal distribution
         dist = Normal(mean, std)
         
-        # Sample action and compute log probability
-        action = dist.rsample()  # rsample() allows gradients if using reparameterization
+        action = dist.rsample()  
         log_prob = dist.log_prob(action).sum(dim=-1)
         
         return action, log_prob
 
 
-# -------------------------
-# REINFORCE Node
-# -------------------------
+
+
 class ReinforceContinuousNode(ReinforcementLearningNode):
     def __init__(self, name="reinforce_continuous_node"):
         super().__init__(name)
@@ -68,9 +64,8 @@ class ReinforceContinuousNode(ReinforcementLearningNode):
         # Timer
         self.create_timer(0.05, self.run)  # 20 Hz
 
-    # -------------------------
-    # Convert action tensor to effort command
-    # -------------------------
+    
+    
     def create_continuous_command(self, action_tensor):
         # Scale each joint action by max_effort_command
         max_effort = torch.tensor(self.max_effort_command, device=device)
@@ -78,20 +73,18 @@ class ReinforceContinuousNode(ReinforcementLearningNode):
         
         return scaled_action.detach().cpu().numpy().tolist()
 
-    # -------------------------
+    
     # Step: get state, act, publish
-    # -------------------------
+    
     def run_one_step(self):
         state_np = self.get_diablo_observations()
         state = torch.FloatTensor(state_np).to(device)
-
-        # Get continuous action and log_prob
         action_tensor, log_prob = self.policy.act(state)
         
         #for debugging
         # print(action_tensor)
 
-        # Send to Gazebo
+        
         scaled_action = self.create_continuous_command(action_tensor)
         self.take_action(scaled_action)
 
@@ -101,23 +94,26 @@ class ReinforceContinuousNode(ReinforcementLearningNode):
         reward = self.compute_reward()
         self.rewards.append(reward)
 
+        self.update_simulation_status()
+
         self.step += 1
         # self.get_logger().info(f"Step {self.step}, Reward: {reward:.3f}")
 
-    # -------------------------
+    
     # Reward function
-    # -------------------------
+    
     def compute_reward(self):
         # Example: reward for staying above height limit
         height = self.get_diablo_observations()[16]
-        if height < self.height_limit:
-            return -10.0
+        roll = self.get_diablo_observations()[17]
+        pitch = self.get_diablo_observations()[18]
+        if height < self.height_limit or roll < 0.174533 or pitch < 0.349066:
+            return -1.0
         else:
             return 0.1
 
-    # -------------------------
+    
     # Update policy at episode end
-    # -------------------------
     def finish_episode(self):
         if len(self.rewards) == 0:
             self.get_logger().warn("No steps taken this episode. Skipping policy update.")
@@ -162,16 +158,20 @@ class ReinforceContinuousNode(ReinforcementLearningNode):
         self.step = 0
         self.episode += 1
 
-    # -------------------------
+    
     # Main loop
-    # -------------------------
+    
     def run(self):
         if not self.is_simulation_ready():
+            return
+        
+        if self.stop_run_when_learning_ended():
             return
 
         if self.is_episode_ended() or self.is_simulation_stopped():
             self.finish_episode()
             self.restart_learning_loop()
+            self.episode += 1
             return
 
         self.run_one_step()

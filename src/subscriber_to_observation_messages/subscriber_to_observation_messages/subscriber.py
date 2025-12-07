@@ -1,7 +1,9 @@
 import rclpy
+import transforms3d
 from rclpy.node import Node
-from sensor_msgs.msg import JointState, LaserScan
+from sensor_msgs.msg import JointState, LaserScan, Imu
 from diablo_joint_observer.msg import Observation
+from tf_transformations import euler_from_quaternion
 
 class DiabloObserver(Node):
     def __init__(self):
@@ -30,8 +32,25 @@ class DiabloObserver(Node):
         )   
         self.latest_lidar_ranges = []
 
+        self.imu_subscriber = self.create_subscription(
+            Imu,
+            'imu',
+            self.imu_callback,
+            10 
+        )
+        self.latest_euler = []
+
     def lidar_callback(self, msg: LaserScan):
         self.latest_lidar_ranges = list(msg.ranges)
+
+    def imu_callback(self, msg: Imu):
+        qx = msg.orientation.x
+        qy = msg.orientation.y
+        qz = msg.orientation.z
+        qw = msg.orientation.w
+
+        roll, pitch, yaw = euler_from_quaternion([qx, qy, qz, qw])
+        self.latest_euler = [roll, pitch, yaw]
 
 
     def joint_state_callback(self, msg: JointState):
@@ -77,6 +96,9 @@ class DiabloObserver(Node):
 
         if self.latest_lidar_ranges:
             diablo_observation.lidar_ranges = self.latest_lidar_ranges
+
+        if self.latest_euler:
+            diablo_observation.imu_orientation = self.latest_euler
 
         # Publish
         self.diablo_state_publisher.publish(diablo_observation)

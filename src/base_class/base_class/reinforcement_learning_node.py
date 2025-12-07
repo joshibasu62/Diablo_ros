@@ -4,7 +4,7 @@ from base_class.base_node_class import DiabloBaseNode
 from base_class.diablo_reinforcement_learning_parameters import (
     reinforcement_learning_node_parameters,
 )
-
+import torch
 
 class ReinforcementLearningNode(DiabloBaseNode):
     def __init__(
@@ -56,7 +56,15 @@ class ReinforcementLearningNode(DiabloBaseNode):
 
     def stop_run_when_learning_ended(self):
         if self.episode == self.max_number_of_episodes:
-            quit()
+            self.get_logger().info("Maximum episodes reached. Saving model and shutting down.")
+        
+            # Save the policy model
+            torch.save(self.policy.state_dict(), "policy_final.pth")
+            self.get_logger().info("Saved final policy model to policy_final.pth")
+            
+            # Shutdown ROS properly
+            import rclpy
+            rclpy.shutdown()
 
     def advance_episode_when_finished(self, clean_up_function: Callable[[], None] = None):
         

@@ -28,11 +28,11 @@ class DiabloBaseNode(Node):
                                                     self.create_publisher(Float64, 'joint_left_leg_4_effort', 10),
                                                     self.create_publisher(Float64, 'joint_right_leg_4_effort', 10),
                                                 ]
-        self.diablo_observations: list[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.diablo_observations: list[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+         # 8 joint positions + 8 joint velocities + 1 lidar distance + 3 imu orientations = 20
+        self.imu_data = []
         self.lidar_data = []
         self.is_truncated: bool = False
-        # self.UPPER_Link_limit: float = 1.4
-        # self.LOWER_Link_limit: float = -1.4
         self.height_limit: float = 0.25
         # Here i will add limit later using inverse kinematics i.e distace of baselink from ground while writing reinforcement learning code
         self.restarting_future: Future = None
@@ -61,6 +61,10 @@ class DiabloBaseNode(Node):
         self.diablo_observations[15] = diablo_observation.right_leg_4_vel
         self.lidar_data = diablo_observation.lidar_ranges
         self.diablo_observations[16] = self.lidar_data[1]
+        self.imu_data = diablo_observation.imu_orientation
+        self.diablo_observations[17] = self.imu_data[0]  # roll
+        self.diablo_observations[18] = self.imu_data[1]  # pitch
+        # self.diablo_observations[19] = self.imu_data[2]  # yaw
         
         
 
@@ -79,7 +83,7 @@ class DiabloBaseNode(Node):
             publisher.publish(msg)
 
     def reset_observation(self):
-        self.diablo_observations = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.diablo_observations = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.lidar_data = []
         self.is_truncated = False
 
@@ -88,7 +92,7 @@ class DiabloBaseNode(Node):
         # current_distance = self.diablo_observations[16]
         # self.get_logger().info(f"Ground distance: {current_distance}, Truncated: {self.is_truncated}")
         
-        if self.diablo_observations[16] < self.height_limit:
+        if self.diablo_observations[16] < self.height_limit or self.diablo_observations[17] < 0.174533 or self.diablo_observations[18] < 0.349066:
             self.is_truncated = True
     
 

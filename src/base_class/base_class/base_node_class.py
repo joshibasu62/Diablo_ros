@@ -18,7 +18,16 @@ class DiabloBaseNode(Node):
         )
 
         self.simulation_reset_service_client: Client = self.create_client(Empty, "restart_sim_service")
-        self.effort_command_publisher: Publisher = self.create_publisher(Float64MultiArray, "effort_cmd", 10)
+        self.effort_command_publisher: Publisher = [
+                                                    self.create_publisher(Float64, 'joint_left_leg_1_effort', 10),
+                                                    self.create_publisher(Float64, 'joint_right_leg_1_effort', 10),
+                                                    self.create_publisher(Float64, 'joint_left_leg_2_effort', 10),
+                                                    self.create_publisher(Float64, 'joint_right_leg_2_effort', 10),
+                                                    self.create_publisher(Float64, 'joint_left_leg_3_effort', 10),
+                                                    self.create_publisher(Float64, 'joint_right_leg_3_effort', 10),
+                                                    self.create_publisher(Float64, 'joint_left_leg_4_effort', 10),
+                                                    self.create_publisher(Float64, 'joint_right_leg_4_effort', 10),
+                                                ]
         self.diablo_observations: list[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.lidar_data = []
         self.is_truncated: bool = False
@@ -63,8 +72,11 @@ class DiabloBaseNode(Node):
     def is_simulation_stopped(self) -> bool:
         return self.is_truncated
 
-    def take_action(self, action: Float64MultiArray):
-        self.effort_command_publisher.publish(action)
+    def take_action(self, action_list):
+        for i, publisher in enumerate(self.effort_command_publisher):
+            msg = Float64()
+            msg.data = action_list[i]
+            publisher.publish(msg)
 
     def reset_observation(self):
         self.diablo_observations = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]

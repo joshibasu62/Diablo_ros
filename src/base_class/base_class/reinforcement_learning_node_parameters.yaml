@@ -11,7 +11,7 @@ reinforcement_learning_node_parameters:
     description: "Max number of steps."
   max_effort_command:
     type: double_array_fixed
-    default_value: [15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0]
+    default_value: [7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0]
     read_only: true
     description: "Effort command sent to robot."
   discount_factor:

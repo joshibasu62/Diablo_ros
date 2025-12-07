@@ -72,12 +72,11 @@ class ReinforceContinuousNode(ReinforcementLearningNode):
     # Convert action tensor to effort command
     # -------------------------
     def create_continuous_command(self, action_tensor):
-        msg = Float64MultiArray()
         # Scale each joint action by max_effort_command
         max_effort = torch.tensor(self.max_effort_command, device=device)
         scaled_action = torch.clamp(action_tensor, -1.0, 1.0) * max_effort
-        msg.data = scaled_action.detach().cpu().numpy().tolist()
-        return msg
+        
+        return scaled_action.detach().cpu().numpy().tolist()
 
     # -------------------------
     # Step: get state, act, publish
@@ -93,8 +92,8 @@ class ReinforceContinuousNode(ReinforcementLearningNode):
         # print(action_tensor)
 
         # Send to Gazebo
-        msg = self.create_continuous_command(action_tensor)
-        self.take_action(msg)
+        scaled_action = self.create_continuous_command(action_tensor)
+        self.take_action(scaled_action)
 
         # Store for REINFORCE update
         self.states.append(state)

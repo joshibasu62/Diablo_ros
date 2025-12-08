@@ -5,6 +5,7 @@ from base_class.diablo_reinforcement_learning_parameters import (
     reinforcement_learning_node_parameters,
 )
 import torch
+import pandas as pd
 
 class ReinforcementLearningNode(DiabloBaseNode):
     def __init__(
@@ -61,6 +62,12 @@ class ReinforcementLearningNode(DiabloBaseNode):
             # Save the policy model
             torch.save(self.policy.state_dict(), "policy_final.pth")
             self.get_logger().info("Saved final policy model to policy_final.pth")
+
+            #save rewards and loss to csv
+            
+            rewards_df = pd.DataFrame(self.rewards_to_save_as_csv, columns=["Total Reward"])
+            rewards_df.to_csv("rewards.csv", index=False)
+            self.get_logger().info("Saved rewards to rewards.csv")
             
             # Shutdown ROS properly
             import rclpy

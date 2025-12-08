@@ -39,6 +39,7 @@ class DiabloObserver(Node):
             10 
         )
         self.latest_euler = []
+        self.latest_acceleration = []
 
     def lidar_callback(self, msg: LaserScan):
         self.latest_lidar_ranges = list(msg.ranges)
@@ -51,6 +52,12 @@ class DiabloObserver(Node):
 
         roll, pitch, yaw = euler_from_quaternion([qx, qy, qz, qw])
         self.latest_euler = [roll, pitch, yaw]
+
+        ax = msg.linear_acceleration.x
+        ay = msg.linear_acceleration.y
+        az = msg.linear_acceleration.z
+
+        self.latest_acceleration = [ax, ay, az]
 
 
     def joint_state_callback(self, msg: JointState):
@@ -99,6 +106,9 @@ class DiabloObserver(Node):
 
         if self.latest_euler:
             diablo_observation.imu_orientation = self.latest_euler
+
+        if self.latest_acceleration:
+            diablo_observation.acceleration = self.latest_acceleration
 
         # Publish
         self.diablo_state_publisher.publish(diablo_observation)

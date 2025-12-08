@@ -28,12 +28,14 @@ class DiabloBaseNode(Node):
                                                     self.create_publisher(Float64, 'joint_left_leg_4_effort', 10),
                                                     self.create_publisher(Float64, 'joint_right_leg_4_effort', 10),
                                                 ]
-        self.diablo_observations: list[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.diablo_observations: list[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
          # 8 joint positions + 8 joint velocities + 1 lidar distance + 3 imu orientations = 20
         self.imu_data = []
         self.lidar_data = []
+        self.acceleration_data = []
         self.is_truncated: bool = False
-        self.height_limit: float = 0.25
+        self.height_limit_lower: float = 0.25
+        self.height_limit_upper: float = 0.5
         # Here i will add limit later using inverse kinematics i.e distace of baselink from ground while writing reinforcement learning code
         self.restarting_future: Future = None
         self.is_resetting: bool = False
@@ -59,11 +61,17 @@ class DiabloBaseNode(Node):
         self.diablo_observations[13] = diablo_observation.right_leg_3_vel
         self.diablo_observations[14] = diablo_observation.left_leg_4_vel
         self.diablo_observations[15] = diablo_observation.right_leg_4_vel
+
         self.lidar_data = diablo_observation.lidar_ranges
         self.diablo_observations[16] = self.lidar_data[1]
+
         self.imu_data = diablo_observation.imu_orientation
         self.diablo_observations[17] = self.imu_data[0]  # roll
         self.diablo_observations[18] = self.imu_data[1]  # pitch
+
+        self.acceleration_data = diablo_observation.acceleration
+        self.diablo_observations[19] = self.acceleration_data[2]  # az
+        
         # self.diablo_observations[19] = self.imu_data[2]  # yaw
         
         
@@ -83,7 +91,7 @@ class DiabloBaseNode(Node):
             publisher.publish(msg)
 
     def reset_observation(self):
-        self.diablo_observations = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.diablo_observations = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.lidar_data = []
         self.is_truncated = False
 

@@ -61,6 +61,9 @@ class ReinforceContinuousNode(ReinforcementLearningNode):
         self.log_probs = []
         self.rewards = []
 
+        self.rewards_to_save_as_csv = []
+        self.loss_to_save_as_csv = []
+
         # Timer
         self.create_timer(0.05, self.run)  # 20 Hz
 
@@ -104,14 +107,41 @@ class ReinforceContinuousNode(ReinforcementLearningNode):
     
     def compute_reward(self):
         reward = 0.0
+
+        reward_for_each_step = 0.5
         # reward for staying above height limit and small roll/pitch
+        # reward = 0.0
         height = self.get_diablo_observations()[16]
         roll = self.get_diablo_observations()[17]
         pitch = self.get_diablo_observations()[18]
-        if height < self.height_limit or roll > 0.174533 or pitch > 0.349066:
-            return -1.0
+        vertical_acceleration = self.get_diablo_observations()[19]
+
+        if height < self.height_limit_lower or height > self.height_limit_upper:
+            reward -= 1.0
         else:
-            return 0.1
+            reward += 5.0  # small bonus for staying within height limits
+
+        if abs(roll) > 0.174533:  # 10 degrees in radians
+            reward -= 1.0
+        else:
+            reward += 0.5  # small bonus for small roll
+
+        if abs(pitch) > 0.174533: #10 degrees in radians  
+            reward -= 2.0  
+        else:
+            reward += 6.0  # small bonus for small pitch
+
+        if vertical_acceleration < 9.81:
+            reward -= 2   # penalize for downward acceleration
+        else:
+            reward += 6  # small bonus for upward or stable acceleration
+
+        reward += reward_for_each_step
+        return reward
+        # if height < self.height_limit or roll > 0.174533 or pitch > 0.349066:
+        #     return -1.0
+        # else:
+        #     return 0.1
 
     
     # Update policy at episode end
@@ -119,7 +149,7 @@ class ReinforceContinuousNode(ReinforcementLearningNode):
         if len(self.rewards) == 0:
             self.get_logger().warn("No steps taken this episode. Skipping policy update.")
             self.step = 0
-            self.episode += 1
+            # self.episode += 1
             return
         G = 0
         returns = []
@@ -157,7 +187,11 @@ class ReinforceContinuousNode(ReinforcementLearningNode):
         self.states, self.log_probs, self.rewards = [], [], []
         
         self.step = 0
-        self.episode += 1
+        
+        # self.episode += 1
+        # Save rewards and loss for CSV
+        self.rewards_to_save_as_csv.append(sum(self.rewards))
+        self.loss_to_save_as_csv.append(loss.item())
 
     
     # Main loop

@@ -263,15 +263,17 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
+        <box size="0.0925 0.0925 0.0925"/>
         <!-- <cylinder length="0.034" radius="0.0925"/> -->
-        <mesh filename="file:///home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/meshes/left_leg_4.STL"/>
+        <!-- <mesh filename="file://$(find diablo_env_ros)/meshes/left_leg_4.STL" /> -->
       </geometry>
       <material name="silver"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <cylinder length="0.034" radius="0.0925"/>
+        <box size="0.0925 0.0925 0.0925"/>
+        <!-- <cylinder length="0.034" radius="0.0925"/> -->
         <!-- <mesh filename="file://$(find diablo_env_ros)/meshes/left_leg_4.STL" /> -->
       </geometry>
     </collision>
@@ -375,14 +377,16 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="file:///home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/meshes/right_leg_4.STL"/>
+        <box size="0.0925 0.0925 0.0925"/>
+        <!-- <mesh filename="file://$(find diablo_env_ros)/meshes/right_leg_4.STL" /> -->
       </geometry>
       <material name="silver"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <cylinder length="0.034" radius="0.0925"/>
+        <box size="0.0925 0.0925 0.0925"/>
+        <!-- <cylinder length="0.034" radius="0.0925"/> -->
         <!-- <mesh filename="file://$(find diablo_env_ros)/meshes/right_leg_4.STL" /> -->
       </geometry>
     </collision>

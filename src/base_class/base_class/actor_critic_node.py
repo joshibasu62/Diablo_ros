@@ -114,8 +114,8 @@ class ActorCriticNode(ReinforcementLearningNode):
         self.state_size = len(sample_obs)
         self.action_size = len(self.max_effort_command)
 
-        # hyperparams - tune these
-        self.rollout_length = 512  # collect 512 steps before each update
+        # hyperparams 
+        self.rollout_length = 512 
         self.mini_batch_size = 128
         self.update_epochs = 4
         self.gamma = float(self.discount_factor)
@@ -161,6 +161,8 @@ class ActorCriticNode(ReinforcementLearningNode):
         reward = self.compute_reward_from_state(state_np)
         done = self.is_simulation_stopped()
 
+        print(f'this is step {self.step} and reward is {reward}')
+
         # store in buffer
         self.buffer.add(state, action_tensor, log_prob, reward, done, value)
 
@@ -169,13 +171,13 @@ class ActorCriticNode(ReinforcementLearningNode):
         self.step += 1
 
         # If episode ended, log and reset episode counters but keep buffer data (on-policy)
-        if done or self.is_episode_ended():
-            self.get_logger().info(f"Episode {self.episode} ended. length={self.episode_length} reward={self.episode_reward:.3f}")
-            self.episode += 1
-            self.episode_length = 0
-            self.episode_reward = 0.0
-            # make sure simulation reset is handled by base class
-            self.restart_learning_loop()
+        # if done or self.is_episode_ended():
+        #     self.get_logger().info(f"Episode {self.episode} ended. length={self.episode_length} reward={self.episode_reward:.3f}")
+        #     self.episode += 1
+        #     self.episode_length = 0
+        #     self.episode_reward = 0.0
+        #     # make sure simulation reset is handled by base class
+        #     self.restart_learning_loop()
 
     def compute_reward_from_state(self, state_np):
         # use the same logic as your old reward but operate on provided state snapshot

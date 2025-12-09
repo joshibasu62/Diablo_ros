@@ -34,8 +34,8 @@ class DiabloBaseNode(Node):
         self.lidar_data = []
         self.acceleration_data = []
         self.is_truncated: bool = False
-        self.height_limit_lower: float = 0.25
-        self.height_limit_upper: float = 0.5
+        self.height_limit_lower: float = 0.15
+        self.height_limit_upper: float = 0.75
         # Here i will add limit later using inverse kinematics i.e distace of baselink from ground while writing reinforcement learning code
         self.restarting_future: Future = None
         self.is_resetting: bool = False
@@ -92,7 +92,9 @@ class DiabloBaseNode(Node):
 
     def reset_observation(self):
         self.diablo_observations = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        self.lidar_data = []
+        self.lidar_data = [0.0, 0.0, 0.0]
+        self.imu_data = [0.0, 0.0, 0.0]
+        self.acceleration_data = [0.0, 0.0, 0.0]
         self.is_truncated = False
 
     def update_simulation_status(self):
@@ -100,7 +102,10 @@ class DiabloBaseNode(Node):
         # current_distance = self.diablo_observations[16]
         # self.get_logger().info(f"Ground distance: {current_distance}, Truncated: {self.is_truncated}")
         
-        if self.diablo_observations[16] < 0.0:
+        # if self.diablo_observations[16] < self.height_limit_lower or self.diablo_observations[16] > self.height_limit_upper:
+        #     self.is_truncated = True
+
+        if self.diablo_observations[16] < 0:
             self.is_truncated = True
     
 

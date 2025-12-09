@@ -54,7 +54,7 @@ class ReinforceContinuousNode(ReinforcementLearningNode):
         self.state_size = len(sample_obs)
         self.action_size = len(self.max_effort_command)  # 8 joints
         self.policy = ContinuousPolicy(self.state_size, self.action_size).to(device)
-        self.optimizer = optim.Adam(self.policy.parameters(), lr=1e-3)
+        self.optimizer = optim.Adam(self.policy.parameters(), lr=1e-4)
 
         # Storage for REINFORCE
         self.states = []
@@ -111,10 +111,11 @@ class ReinforceContinuousNode(ReinforcementLearningNode):
         reward_for_each_step = 0.5
         # reward for staying above height limit and small roll/pitch
         # reward = 0.0
+        # diff = 0.0
         height = self.get_diablo_observations()[16]
         roll = self.get_diablo_observations()[17]
         pitch = self.get_diablo_observations()[18]
-        vertical_acceleration = self.get_diablo_observations()[19]
+        # vertical_acceleration = self.get_diablo_observations()[19]
 
         if height < self.height_limit_lower or height > self.height_limit_upper:
             reward -= 1.0
@@ -131,10 +132,12 @@ class ReinforceContinuousNode(ReinforcementLearningNode):
         else:
             reward += 6.0  # small bonus for small pitch
 
-        if vertical_acceleration < 9.81:
-            reward -= 2   # penalize for downward acceleration
-        else:
-            reward += 6  # small bonus for upward or stable acceleration
+        # diff = vertical_acceleration + 9.81
+
+        # if diff > 0.5 or diff < -0.5 :
+        #     reward -= 2   # penalize for downward acceleration
+        # else:
+        #     reward += 6  # small bonus for upward or stable acceleration
 
         reward += reward_for_each_step
         return reward

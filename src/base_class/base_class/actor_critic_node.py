@@ -33,6 +33,7 @@ class ActorCritic(nn.Module):
         mean = torch.clamp(torch.nan_to_num(mean, nan=0.0, posinf=10.0, neginf=-10.0), -10, 10)
         log_std = torch.clamp(torch.nan_to_num(self.log_std, nan=1e-3, posinf=1.0, neginf=1e-3), 1e-3, 1.0)
         value = self.value_head(x).squeeze(-1)
+        value = torch.clamp(torch.nan_to_num(value, nan=0.0, posinf=10.0, neginf=-10.0), -10, 10)
         # clamp mean/nan protections if needed upstream
 
         
@@ -62,6 +63,7 @@ class RolloutBuffer:
         self.rewards = [0.0] * rollout_length
         self.dones = [False] * rollout_length
         self.values = [0.0] * rollout_length
+        
 
     def add(self, state, action, log_prob, reward, done, value):
         idx = self.ptr
@@ -71,6 +73,8 @@ class RolloutBuffer:
         self.rewards[idx] = float(reward)
         self.dones[idx] = bool(done)
         self.values[idx] = float(value.detach())
+
+        
         self.ptr += 1
 
     def is_full(self):
@@ -115,8 +119,8 @@ class ActorCriticNode(ReinforcementLearningNode):
         self.action_size = len(self.max_effort_command)
 
         # hyperparams 
-        self.rollout_length = 512 
-        self.mini_batch_size = 128
+        self.rollout_length = 2048 
+        self.mini_batch_size = 512
         self.update_epochs = 4
         self.gamma = float(self.discount_factor)
         self.gae_lambda = 0.95
@@ -161,11 +165,14 @@ class ActorCriticNode(ReinforcementLearningNode):
         reward = self.compute_reward_from_state(state_np)
         done = self.is_simulation_stopped()
 
-        print(f'this is step {self.step} and reward is {reward}')
+        # print(f'this is step {self.step} and reward is {reward}')
 
         # store in buffer
         self.buffer.add(state, action_tensor, log_prob, reward, done, value)
 
+        
+
+        self.update_simulation_status()
         self.episode_reward += reward
         self.episode_length += 1
         self.step += 1
@@ -184,24 +191,30 @@ class ActorCriticNode(ReinforcementLearningNode):
         height = state_np[16]
         roll = state_np[17]
         pitch = state_np[18]
+        to_be_roll = 0.0
+        to_be_pitch = 0.0
 
         reward = 0.0
         reward_for_each_step = 0.5
 
-        if height < self.height_limit_lower or height > self.height_limit_upper:
+        if height < self.height_limit_lower and height > self.height_limit_upper:
             reward -= 1.0
         else:
             reward += 5.0
 
-        if abs(roll) > 0.174533:
-            reward -= 1.0
-        else:
-            reward += 0.5
+        roll_dist = abs(to_be_roll - roll)
+        reward -= roll_dist
+        # if abs(roll) > 0.174533:
+        #     reward -= 1.0
+        # else:
+        #     reward += 0.5
 
-        if abs(pitch) > 0.174533:
-            reward -= 2.0
-        else:
-            reward += 6.0
+        pitch_dist = abs(to_be_pitch - pitch)
+        reward -= pitch_dist
+        # if abs(pitch) > 0.174533:
+        #     reward -= 2.0
+        # else:
+        #     reward += 6.0
 
         reward += reward_for_each_step
         return reward
@@ -275,7 +288,7 @@ class ActorCriticNode(ReinforcementLearningNode):
                 entropies.append(entropy.item())
 
         # logging
-        self.get_logger().info(f"Update finished: policy_loss={np.mean(policy_losses):.4f} value_loss={np.mean(value_losses):.4f} entropy={np.mean(entropies):.4f}")
+        self.get_logger().info(f"Update finished: policy_loss={np.mean(policy_losses):.4f} value_loss={np.mean(value_losses):.4f} entropy={np.mean(entropies):.4f} reward={np.mean(rewards_np)}")
 
         # clear buffer
         self.buffer.clear()
@@ -294,9 +307,9 @@ class ActorCriticNode(ReinforcementLearningNode):
         # handle episode termination
         if self.is_episode_ended() or self.is_simulation_stopped():
             # ensure final update if buffer has data
-            if self.buffer.ptr > 0:
-                self.finish_update()
+            self.finish_update()
             self.restart_learning_loop()
+            self.episode += 1
             return
 
         # normal step

@@ -382,7 +382,7 @@
         </geometry>
       </collision>
     </link>
-    <joint name="joint_right_leg_4" type="fixed">
+    <joint name="joint_right_leg_4" type="revolute">
       <origin xyz="0.2 0 -0.0514" rpy="0 0 0" />
       <parent link="right_leg_3" />
       <child link="right_leg_4" />

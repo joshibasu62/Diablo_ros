@@ -115,22 +115,32 @@ class ReinforceContinuousNode(ReinforcementLearningNode):
         height = self.get_diablo_observations()[16]
         roll = self.get_diablo_observations()[17]
         pitch = self.get_diablo_observations()[18]
+        to_be_roll = 0.0
+        to_be_pitch = 0.0
         # vertical_acceleration = self.get_diablo_observations()[19]
 
-        if height < self.height_limit_lower or height > self.height_limit_upper:
+        if height < self.height_limit_lower and height > self.height_limit_upper:
             reward -= 1.0
         else:
             reward += 5.0  # small bonus for staying within height limits
 
-        if abs(roll) > 0.174533:  # 10 degrees in radians
-            reward -= 1.0
-        else:
-            reward += 0.5  # small bonus for small roll
+        # if abs(roll) > 0.174533:  # 10 degrees in radians
+        #     reward -= 1.0
+        # else:
+        #     reward += 0.5  # small bonus for small roll
 
-        if abs(pitch) > 0.174533: #10 degrees in radians  
-            reward -= 2.0  
-        else:
-            reward += 6.0  # small bonus for small pitch
+        # if abs(pitch) > 0.174533: #10 degrees in radians  
+        #     reward -= 2.0  
+        # else:
+        #     reward += 6.0  # small bonus for small pitch
+
+        roll_dist = abs(to_be_roll - roll)
+        reward -= roll_dist
+        
+
+        pitch_dist = abs(to_be_pitch - pitch)
+        reward -= pitch_dist
+        
 
         # diff = vertical_acceleration + 9.81
 

@@ -119,7 +119,7 @@ class ReinforceContinuousNode(ReinforcementLearningNode):
         to_be_pitch = 0.0
         # vertical_acceleration = self.get_diablo_observations()[19]
 
-        if height < self.height_limit_lower and height > self.height_limit_upper:
+        if height < self.height_limit_lower or height > self.height_limit_upper:
             reward -= 1.0
         else:
             reward += 5.0  # small bonus for staying within height limits

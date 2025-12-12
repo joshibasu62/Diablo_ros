@@ -119,8 +119,8 @@ class ActorCriticNode(ReinforcementLearningNode):
         self.action_size = len(self.max_effort_command)
 
         # hyperparams 
-        self.rollout_length = 2048 
-        self.mini_batch_size = 512
+        self.rollout_length = 1048 
+        self.mini_batch_size = 256
         self.update_epochs = 4
         self.gamma = float(self.discount_factor)
         self.gae_lambda = 0.95

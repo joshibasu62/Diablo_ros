@@ -126,7 +126,7 @@ def generate_launch_description():
 
     launchDescriptionObject = LaunchDescription()
 
-    launchDescriptionObject.add_action(rviz_launch_arg)
+    # launchDescriptionObject.add_action(rviz_launch_arg)
     launchDescriptionObject.add_action(world_arg)
     launchDescriptionObject.add_action(model_arg)
 
@@ -143,7 +143,7 @@ def generate_launch_description():
     
     launchDescriptionObject.add_action(gz_bridge_node)
      
-    launchDescriptionObject.add_action(rviz_node)
+    # launchDescriptionObject.add_action(rviz_node)
 
     #if want delay
 

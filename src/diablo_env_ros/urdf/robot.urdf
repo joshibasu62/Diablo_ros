@@ -33,12 +33,8 @@
   </material>
   <!-- <link name="world"/> -->
   <link name="base_footprint">
-    <inertial>
-      <mass value="0.0001"/>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
-    </inertial>
-  </link>
+      
+    </link>
   <link name="base_link">
     <inertial>
       <origin rpy="0 0 0" xyz="-0.020452 3.5457E-06 0.01871"/>
@@ -55,8 +51,8 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <sphere radius="0.15"/>
-        <!-- <box size="0.47 0.3 0.19"/> -->
+        <!-- <sphere radius="0.15"/> -->
+        <box size="0.4 0.3 0.19"/>
         <!-- <mesh filename="file://$(find diablo_env_ros)/meshes/base_link.STL" /> -->
       </geometry>
     </collision>
@@ -310,7 +306,7 @@
     <parent link="base_link"/>
     <child link="right_leg_1"/>
     <axis xyz="0 0 1"/>
-    <limit effort="100" lower="-0.1" upper="0.1" velocity="100"/>
+    <limit effort="100" lower="-0.7854" upper="0.7854" velocity="100"/>
   </joint>
   <link name="right_leg_2">
     <inertial>
@@ -499,8 +495,6 @@
   </gazebo>
   <gazebo reference="lidar_frame">
     <sensor name="gpu_lidar" type="gpu_lidar">
-      &quot;
-        
       <pose relative_to="lidar_frame">0 0 0 0 0 0</pose>
       <topic>lidar</topic>
       <gz_frame_id>lidar_frame</gz_frame_id>

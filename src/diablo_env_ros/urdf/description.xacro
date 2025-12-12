@@ -3,11 +3,7 @@
   <xacro:macro name="description">
     <!-- <link name="world"/> -->
     <link name="base_footprint">
-      <inertial>
-        <mass value="0.0001"/>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
-      </inertial>
+      
     </link>
 
     
@@ -27,8 +23,8 @@
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.15"/>
-          <!-- <box size="0.47 0.3 0.19"/> -->
+          <!-- <sphere radius="0.15"/> -->
+          <box size="0.4 0.3 0.19"/>
           <!-- <mesh filename="file://$(find diablo_env_ros)/meshes/base_link.STL" /> -->
         </geometry>
       </collision>
@@ -298,7 +294,7 @@
       <parent link="base_link" />
       <child link="right_leg_1" />
       <axis xyz="0 0 1" />
-      <limit lower="-0.1" upper="0.1" effort="100" velocity="100" />
+      <limit lower="-0.7854" upper="0.7854" effort="100" velocity="100" />
     </joint>
 
     <link name="right_leg_2">

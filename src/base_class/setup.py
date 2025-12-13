@@ -38,6 +38,7 @@ setup(
             "reinforce = base_class.reinforce:main",
             "reinforce_node = base_class.reinforce_node:main",
             "actor_critic_node = base_class.actor_critic_node:main",
+            "train_ppo_diablo = base_class.train_ppo_diablo:main",
         ],
     },
 )

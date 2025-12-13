@@ -31,9 +31,14 @@ class ActorCritic(nn.Module):
         x = F.relu(self.fc2(x))
         mean = self.mean_head(x)
         mean = torch.clamp(torch.nan_to_num(mean, nan=0.0, posinf=10.0, neginf=-10.0), -10, 10)
-        log_std = torch.clamp(torch.nan_to_num(self.log_std, nan=1e-3, posinf=1.0, neginf=1e-3), 1e-3, 1.0)
+        
+        log_std = torch.nan_to_num(self.log_std, nan=-0.7, posinf=1.0, neginf=-5.0)
+        log_std = torch.clamp(log_std, -5.0, 1.0)
+        # log_std = torch.clamp(torch.nan_to_num(self.log_std, nan=1e-3, posinf=1.0, neginf=1e-3), 1e-3, 1.0)
+        
         value = self.value_head(x).squeeze(-1)
-        value = torch.clamp(torch.nan_to_num(value, nan=0.0, posinf=10.0, neginf=-10.0), -10, 10)
+        value = torch.nan_to_num(value, nan=0.0, posinf=0.0, neginf=0.0)
+        # value = torch.clamp(torch.nan_to_num(value, nan=0.0, posinf=10.0, neginf=-10.0), -10, 10)
         # clamp mean/nan protections if needed upstream
 
         
@@ -43,8 +48,11 @@ class ActorCritic(nn.Module):
     def get_action_and_value(self, state):
         mean, log_std, value = self.forward(state)
         
-        std = F.softplus(log_std) + 1e-4
-        std = torch.clamp(std, 1e-4, 1.0)
+        # std = F.softplus(log_std) + 1e-4
+        # std = torch.clamp(std, 1e-4, 1.0)
+
+        std = torch.exp(log_std).clamp(1e-3, 1.0)
+
         dist = Normal(mean, std)
         action = dist.rsample()
         log_prob = dist.log_prob(action).sum(dim=-1)
@@ -118,13 +126,13 @@ class ActorCriticNode(ReinforcementLearningNode):
         self.action_size = len(self.max_effort_command)
 
         # hyperparams 
-        self.rollout_length = 1048 
-        self.mini_batch_size = 256
-        self.update_epochs = 4
+        self.rollout_length = 512 
+        self.mini_batch_size = 512
+        self.update_epochs = 1
         self.gamma = float(self.discount_factor)
         self.gae_lambda = 0.95
         self.value_coef = 0.5
-        self.entropy_coef = 0.01
+        self.entropy_coef = 0.003
         self.lr = 3e-4
 
         # networks
@@ -241,7 +249,7 @@ class ActorCriticNode(ReinforcementLearningNode):
         dataset_size = states.shape[0]
         inds = np.arange(dataset_size)
 
-        value_losses, policy_losses, entropies = [], [], []
+        value_losses, policy_losses, entropies, total_loss = [], [], [], []
 
         for epoch in range(self.update_epochs):
             np.random.shuffle(inds)
@@ -254,8 +262,7 @@ class ActorCriticNode(ReinforcementLearningNode):
                 mb_adv = advantages_t[mb_inds]
 
                 mean, log_std, values_pred = self.ac.forward(mb_states)
-                std = F.softplus(log_std) + 1e-4
-                std = torch.clamp(std, 1e-4, 1.0)
+                std = torch.exp(log_std).clamp(1e-3, 1.0)
                 dist = Normal(mean, std)
 
                 new_log_prob = dist.log_prob(mb_actions).sum(dim=-1)
@@ -274,11 +281,14 @@ class ActorCriticNode(ReinforcementLearningNode):
                 value_losses.append(value_loss.item())
                 policy_losses.append(policy_loss.item())
                 entropies.append(entropy.item())
+                total_loss.append(loss.item())
+                
 
         self.get_logger().info(
             f"Update finished: policy_loss={np.mean(policy_losses):.4f} "
             f"value_loss={np.mean(value_losses):.4f} entropy={np.mean(entropies):.4f} "
-            f"reward={np.mean(rewards_np)}"
+            f"reward={np.mean(rewards_np)} "
+            f"total_loss = {np.mean(total_loss):.4f}"
         )
 
         self.buffer.clear()

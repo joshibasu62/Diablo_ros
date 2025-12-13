@@ -16,7 +16,7 @@ reinforcement_learning_node_parameters:
     description: "Effort command sent to robot."
   discount_factor:
     type: double
-    default_value: 0.95
+    default_value: 0.995
     read_only: true
     description: "Discount factor."
   reward:

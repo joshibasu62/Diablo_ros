@@ -259,17 +259,17 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <box size="0.0925 0.0925 0.0925"/>
+        <!-- <box size="0.0925 0.0925 0.0925"/> -->
         <!-- <cylinder length="0.034" radius="0.0925"/> -->
-        <!-- <mesh filename="file://$(find diablo_env_ros)/meshes/left_leg_4.STL" /> -->
+        <mesh filename="file:///home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/meshes/left_leg_4.STL"/>
       </geometry>
       <material name="silver"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <box size="0.0925 0.0925 0.0925"/>
-        <!-- <cylinder length="0.034" radius="0.0925"/> -->
+        <!-- <box size="0.0925 0.0925 0.0925"/> -->
+        <cylinder length="0.034" radius="0.0925"/>
         <!-- <mesh filename="file://$(find diablo_env_ros)/meshes/left_leg_4.STL" /> -->
       </geometry>
     </collision>
@@ -278,7 +278,9 @@
     <origin rpy="0 0 0" xyz="0.2 0 0.0514"/>
     <parent link="left_leg_3"/>
     <child link="left_leg_4"/>
-    <axis xyz="0 0 1"/>
+    <axis xyz="0 0 1">
+      <dynamics damping="0.05" friction="0.01"/>
+    </axis>
     <limit effort="100" lower="-6.283185e4" upper="6.283185e4" velocity="100"/>
   </joint>
   <link name="right_leg_1">
@@ -373,16 +375,16 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <box size="0.0925 0.0925 0.0925"/>
-        <!-- <mesh filename="file://$(find diablo_env_ros)/meshes/right_leg_4.STL" /> -->
+        <!-- <box size="0.0925 0.0925 0.0925"/> -->
+        <mesh filename="file:///home/basanta-joshi/Desktop/virtual_environment/diablo_env_ros/install/diablo_env_ros/share/diablo_env_ros/meshes/right_leg_4.STL"/>
       </geometry>
       <material name="silver"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <box size="0.0925 0.0925 0.0925"/>
-        <!-- <cylinder length="0.034" radius="0.0925"/> -->
+        <!-- <box size="0.0925 0.0925 0.0925"/> -->
+        <cylinder length="0.034" radius="0.0925"/>
         <!-- <mesh filename="file://$(find diablo_env_ros)/meshes/right_leg_4.STL" /> -->
       </geometry>
     </collision>
@@ -391,7 +393,9 @@
     <origin rpy="0 0 0" xyz="0.2 0 -0.0514"/>
     <parent link="right_leg_3"/>
     <child link="right_leg_4"/>
-    <axis xyz="0 0 1"/>
+    <axis xyz="0 0 1">
+      <dynamics damping="0.05" friction="0.01"/>
+    </axis>
     <limit effort="100" lower="-6.283185e4" upper="6.283185e4" velocity="100"/>
   </joint>
   <!-- Gazebo Physics Properties -->

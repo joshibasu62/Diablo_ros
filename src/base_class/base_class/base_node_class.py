@@ -6,6 +6,7 @@ from std_srvs.srv import Empty
 from rclpy.task import Future
 from rclpy.publisher import Publisher
 from rclpy.client import Client
+import time
 
 class DiabloBaseNode(Node):
     def __init__(self, node_name = "base_node_class"):
@@ -102,7 +103,7 @@ class DiabloBaseNode(Node):
         # current_distance = self.diablo_observations[16]
         # self.get_logger().info(f"Ground distance: {current_distance}, Truncated: {self.is_truncated}")
         
-        # if self.diablo_observations[16] > self.height_limit_lower and self.diablo_observations[16] < self.height_limit_upper:
+        # if (self.diablo_observations[16] > self.height_limit_lower or self.diablo_observations[16] < self.height_limit_upper) and abs(self.diablo_observations[17]) == 0.0 and abs(self.diablo_observations[18]) == 0.0 :
         #     self.is_truncated = True
 
         if self.diablo_observations[16] < 0:
@@ -129,6 +130,7 @@ class DiabloBaseNode(Node):
         self.is_resetting = True
         self.restart_simulation()
         self.reset_observation()
+        time.sleep(0.2)
 
 
 

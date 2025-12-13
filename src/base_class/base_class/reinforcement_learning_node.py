@@ -33,7 +33,7 @@ class ReinforcementLearningNode(DiabloBaseNode):
             self.parameters.max_effort_command if max_effort_command is None else max_effort_command
         )
         self.discount_factor = self.parameters.discount_factor if discount_factor is None else discount_factor
-        self.reward = self.parameters.reward if max_number_of_steps is None else reward
+        self.reward = self.parameters.reward if reward is None else reward
         self.episode = 0
         self.step = 0
         self.optimizer = optimizer
@@ -41,7 +41,7 @@ class ReinforcementLearningNode(DiabloBaseNode):
         self.model = model
 
     def is_episode_ended(self) -> bool:
-        return self.step == self.max_number_of_steps
+        return self.step >= self.max_number_of_steps
 
     def create_command(self, action: int) -> Float64MultiArray:
         msg = Float64MultiArray()
@@ -56,22 +56,25 @@ class ReinforcementLearningNode(DiabloBaseNode):
         return msg
 
     def stop_run_when_learning_ended(self):
-        if self.episode == self.max_number_of_episodes:
+        if self.episode >= self.max_number_of_episodes:
             self.get_logger().info("Maximum episodes reached. Saving model and shutting down.")
-        
-            # Save the policy model
-            torch.save(self.policy.state_dict(), "policy_final.pth")
-            self.get_logger().info("Saved final policy model to policy_final.pth")
 
-            #save rewards and loss to csv
-            
-            rewards_df = pd.DataFrame(self.rewards_to_save_as_csv, columns=["Total Reward"])
-            rewards_df.to_csv("rewards.csv", index=False)
-            self.get_logger().info("Saved rewards to rewards.csv")
-            
-            # Shutdown ROS properly
+            # Save the model (for your A2C node)
+            if hasattr(self, "ac"):
+                torch.save(self.ac.state_dict(), "actor_critic_final.pth")
+                self.get_logger().info("Saved final ActorCritic model to actor_critic_final.pth")
+
+            # Only do this if you actually track episode rewards somewhere
+            if hasattr(self, "rewards_to_save_as_csv"):
+                rewards_df = pd.DataFrame(self.rewards_to_save_as_csv, columns=["Total Reward"])
+                rewards_df.to_csv("rewards.csv", index=False)
+                self.get_logger().info("Saved rewards to rewards.csv")
+
             import rclpy
             rclpy.shutdown()
+            return True  # important
+
+        return False
 
     def advance_episode_when_finished(self, clean_up_function: Callable[[], None] = None):
         

@@ -122,7 +122,7 @@ class ReinforceContinuousNode(ReinforcementLearningNode):
         if height < self.height_limit_lower or height > self.height_limit_upper:
             reward -= 1.0
         else:
-            reward += 5.0  # small bonus for staying within height limits
+            reward += 1.0  # small bonus for staying within height limits
 
         # if abs(roll) > 0.174533:  # 10 degrees in radians
         #     reward -= 1.0
@@ -196,6 +196,9 @@ class ReinforceContinuousNode(ReinforcementLearningNode):
 
         self.get_logger().info(f"Episode {self.episode} finished. Loss: {loss.item():.3f}")
 
+        self.rewards_to_save_as_csv.append(sum(self.rewards))
+        self.loss_to_save_as_csv.append(loss.item())
+
         # Clear storage
         self.states, self.log_probs, self.rewards = [], [], []
         
@@ -203,9 +206,7 @@ class ReinforceContinuousNode(ReinforcementLearningNode):
         
         # self.episode += 1
         # Save rewards and loss for CSV
-        self.rewards_to_save_as_csv.append(sum(self.rewards))
-        self.loss_to_save_as_csv.append(loss.item())
-
+        
     
     # Main loop
     

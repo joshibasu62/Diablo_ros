@@ -53,7 +53,6 @@ class ActorCritic(nn.Module):
 
 
 class RolloutBuffer:
-    """Simple on-policy rollout buffer for A2C/GAE updates."""
     def __init__(self, rollout_length, state_dim, action_dim):
         self.rollout_length = rollout_length
         self.ptr = 0
@@ -63,7 +62,6 @@ class RolloutBuffer:
         self.rewards = [0.0] * rollout_length
         self.dones = [False] * rollout_length
         self.values = [0.0] * rollout_length
-        
 
     def add(self, state, action, log_prob, reward, done, value):
         idx = self.ptr
@@ -73,19 +71,20 @@ class RolloutBuffer:
         self.rewards[idx] = float(reward)
         self.dones[idx] = bool(done)
         self.values[idx] = float(value.detach())
-
-        
         self.ptr += 1
 
     def is_full(self):
         return self.ptr >= self.rollout_length
 
+    def has_data(self):
+        return self.ptr > 0
+
     def clear(self):
         self.ptr = 0
 
     def get(self):
-        # return numpy arrays trimmed to ptr
         n = self.ptr
+        # assume n > 0; caller must check has_data()
         states = np.stack(self.states[:n])
         actions = np.stack(self.actions[:n])
         log_probs = np.array(self.log_probs[:n])
@@ -187,44 +186,43 @@ class ActorCriticNode(ReinforcementLearningNode):
         #     self.restart_learning_loop()
 
     def compute_reward_from_state(self, state_np):
-        # use the same logic as your old reward but operate on provided state snapshot
         height = state_np[16]
         roll = state_np[17]
         pitch = state_np[18]
-        to_be_roll = 0.0
-        to_be_pitch = 0.0
+
+        target_height = (self.height_limit_lower + self.height_limit_upper) / 2.0
+        alive_bonus = 0.1
 
         reward = 0.0
-        reward_for_each_step = 0.5
 
-        if height < self.height_limit_lower and height > self.height_limit_upper:
-            reward -= 1.0
+        # 1) height reward
+        if height < self.height_limit_lower or height > self.height_limit_upper:
+            reward -= 5.0   # clearly bad height
         else:
-            reward += 5.0
+            # smoothly reward being near target height
+            height_error = height - target_height
+            reward += 3.0 * np.exp(- (height_error / 0.05) ** 2)  # Gaussian around target
 
-        roll_dist = abs(to_be_roll - roll)
-        reward -= roll_dist
-        # if abs(roll) > 0.174533:
-        #     reward -= 1.0
-        # else:
-        #     reward += 0.5
+        # 2) orientation penalty (rad^2 gives stronger penalty when angle grows)
+        angle_penalty_scale = 3.0
+        reward -= angle_penalty_scale * (roll ** 2 + pitch ** 2)
 
-        pitch_dist = abs(to_be_pitch - pitch)
-        reward -= pitch_dist
-        # if abs(pitch) > 0.174533:
-        #     reward -= 2.0
-        # else:
-        #     reward += 6.0
+        # 3) small alive bonus each step
+        reward += alive_bonus
 
-        reward += reward_for_each_step
+        # 4) optional: strong penalty on failure
+        if self.is_simulation_stopped():
+            reward -= 20.0
+
         return reward
 
     def finish_update(self):
-        # called when buffer full or training triggered
-        states_np, actions_np, log_probs_np, rewards_np, dones_np, values_np = self.buffer.get()
-        n = len(rewards_np)
-        if n == 0:
+        # Safety: do nothing if buffer is empty
+        if not self.buffer.has_data():
+            self.get_logger().warn("finish_update() called but rollout buffer is empty; skipping.")
             return
+
+        states_np, actions_np, log_probs_np, rewards_np, dones_np, values_np = self.buffer.get()
 
         # compute last value for bootstrapping
         last_state = torch.FloatTensor(self.get_diablo_observations()).to(device)
@@ -232,7 +230,10 @@ class ActorCriticNode(ReinforcementLearningNode):
             _, _, last_value = self.ac.forward(last_state.unsqueeze(0))
             last_value = float(last_value.squeeze(0).cpu().numpy())
 
-        advantages, returns = compute_gae(rewards_np, values_np, dones_np, last_value, gamma=self.gamma, lam=self.gae_lambda)
+        advantages, returns = compute_gae(
+            rewards_np, values_np, dones_np, last_value,
+            gamma=self.gamma, lam=self.gae_lambda
+        )
 
         # convert to tensors
         states = torch.FloatTensor(states_np).to(device)
@@ -244,25 +245,21 @@ class ActorCriticNode(ReinforcementLearningNode):
         # normalize advantages
         advantages_t = (advantages_t - advantages_t.mean()) / (advantages_t.std() + 1e-8)
 
-        # perform multi-epoch updates with mini-batches (on-policy)
         dataset_size = states.shape[0]
         inds = np.arange(dataset_size)
 
-        value_losses = []
-        policy_losses = []
-        entropies = []
+        value_losses, policy_losses, entropies = [], [], []
 
         for epoch in range(self.update_epochs):
             np.random.shuffle(inds)
             for start in range(0, dataset_size, self.mini_batch_size):
-                mb_inds = inds[start : start + self.mini_batch_size]
+                mb_inds = inds[start:start + self.mini_batch_size]
                 mb_states = states[mb_inds]
                 mb_actions = actions[mb_inds]
                 mb_old_log_probs = old_log_probs[mb_inds]
                 mb_returns = returns_t[mb_inds]
                 mb_adv = advantages_t[mb_inds]
 
-                # forward pass
                 mean, log_std, values_pred = self.ac.forward(mb_states)
                 std = F.softplus(log_std) + 1e-4
                 std = torch.clamp(std, 1e-4, 1.0)
@@ -271,9 +268,7 @@ class ActorCriticNode(ReinforcementLearningNode):
                 new_log_prob = dist.log_prob(mb_actions).sum(dim=-1)
                 entropy = dist.entropy().sum(dim=-1).mean()
 
-                # policy loss (vanilla actor-critic / A2C style)
                 policy_loss = -(new_log_prob * mb_adv).mean()
-                # value loss
                 value_loss = F.mse_loss(values_pred, mb_returns)
 
                 loss = policy_loss + self.value_coef * value_loss - self.entropy_coef * entropy
@@ -287,10 +282,12 @@ class ActorCriticNode(ReinforcementLearningNode):
                 policy_losses.append(policy_loss.item())
                 entropies.append(entropy.item())
 
-        # logging
-        self.get_logger().info(f"Update finished: policy_loss={np.mean(policy_losses):.4f} value_loss={np.mean(value_losses):.4f} entropy={np.mean(entropies):.4f} reward={np.mean(rewards_np)}")
+        self.get_logger().info(
+            f"Update finished: policy_loss={np.mean(policy_losses):.4f} "
+            f"value_loss={np.mean(value_losses):.4f} entropy={np.mean(entropies):.4f} "
+            f"reward={np.mean(rewards_np)}"
+        )
 
-        # clear buffer
         self.buffer.clear()
 
     def run(self):
@@ -300,20 +297,27 @@ class ActorCriticNode(ReinforcementLearningNode):
         if self.stop_run_when_learning_ended():
             return
 
-        # if buffer full -> compute update first (on-policy)
-        if self.buffer.is_full():
-            self.finish_update()
-
-        # handle episode termination
+        # If previous step ended the episode, handle it BEFORE taking another step
         if self.is_episode_ended() or self.is_simulation_stopped():
-            # ensure final update if buffer has data
-            self.finish_update()
+            if self.buffer.has_data():
+                self.finish_update()
+            
+            self.get_logger().info(
+                f"Episode {self.episode} ended with {self.step} steps"
+            )
             self.restart_learning_loop()
             self.episode += 1
+            self.step = 0
+            self.episode_length = 0
+            self.episode_reward = 0
             return
 
-        # normal step
+        # Normal step
         self.run_one_step()
+
+        # If the buffer is full after this step, update (on-policy)
+        if self.buffer.is_full():
+            self.finish_update()
 
 
 def main(args=None):

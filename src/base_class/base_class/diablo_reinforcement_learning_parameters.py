@@ -22,7 +22,7 @@ class reinforcement_learning_node_parameters:
         stamp_ = Time()
 
         max_number_of_episodes = 2000
-        max_number_of_steps = 250
+        max_number_of_steps = 2096
         max_effort_command = [30.0, 30.0, 30.0, 30.0, 30.0, 30.0, 30.0, 30.0]
         discount_factor = 0.95
         reward = 1

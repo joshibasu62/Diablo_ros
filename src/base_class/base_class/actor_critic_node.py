@@ -176,14 +176,7 @@ class ActorCriticNode(ReinforcementLearningNode):
         self.episode_length += 1
         self.step += 1
 
-        # If episode ended, log and reset episode counters but keep buffer data (on-policy)
-        # if done or self.is_episode_ended():
-        #     self.get_logger().info(f"Episode {self.episode} ended. length={self.episode_length} reward={self.episode_reward:.3f}")
-        #     self.episode += 1
-        #     self.episode_length = 0
-        #     self.episode_reward = 0.0
-        #     # make sure simulation reset is handled by base class
-        #     self.restart_learning_loop()
+    
 
     def compute_reward_from_state(self, state_np):
         height = state_np[16]

@@ -126,14 +126,51 @@ class ActorCriticNode(ReinforcementLearningNode):
         self.action_size = len(self.max_effort_command)
 
         # hyperparams 
-        self.rollout_length = 512 
-        self.mini_batch_size = 512
+        self.rollout_length = 1048 
+        self.mini_batch_size = 1048
         self.update_epochs = 1
         self.gamma = float(self.discount_factor)
         self.gae_lambda = 0.95
         self.value_coef = 0.5
         self.entropy_coef = 0.003
         self.lr = 3e-4
+
+
+        self.reward_weights = {
+            'orient': 2.0,
+            'height': 1.5,
+            'com': 1.0,
+            'clearance': 0.5,
+            'wheel_slip': -0.05,
+            'wheel_torque': -0.01,
+            'joint_torque': -0.001,
+            'action_smooth': -0.01,
+            'energy': -0.0001
+        }
+        
+        # Standing parameters
+        self.target_height = (self.height_limit_lower + self.height_limit_upper) / 2.0
+        self.standing_height = 0.6  # Adjust based on your robot
+        self.max_roll_pitch = np.deg2rad(15)
+        
+        # Wheel indices 
+        
+        self.wheel_indices = [6, 7]  
+        
+       
+        self.prev_actions = np.zeros(self.action_size)
+        self.prev_joint_velocities = np.zeros(8)
+        
+        
+        self.upright_time_steps = 0
+        self.required_upright_steps = 50
+        
+        
+        self.episode = 0
+        self.curriculum_stage = 1 
+
+
+
 
         # networks
         self.ac = ActorCritic(self.state_size, self.action_size).to(device)
@@ -145,14 +182,37 @@ class ActorCriticNode(ReinforcementLearningNode):
         # storage for logging
         self.episode_reward = 0.0
         self.episode_length = 0
+        self.step = 0
 
         # run timer
-        self.create_timer(0.05, self.run)  # 20 Hz
+        self.create_timer(0.005, self.run)  # 20 Hz
 
     def create_continuous_command(self, action_tensor):
         max_effort = torch.tensor(self.max_effort_command, device=device)
         scaled_action = torch.clamp(action_tensor, -1.0, 1.0) * max_effort
         return scaled_action.detach().cpu().numpy().tolist()
+    
+
+    def estimate_foot_height(self, leg_joint_positions, is_left=True):
+        """
+        Simplified foot height estimation from joint positions
+        Adjust based on your robot's kinematics
+        """
+        hip_angle = leg_joint_positions[0]
+        knee_angle = leg_joint_positions[1]
+        ankle_angle = leg_joint_positions[2]
+        
+        # Very simplified model - adjust lengths based on your robot
+        thigh_length = 0.2
+        shin_length = 0.2
+        
+        # Calculate foot position relative to hip
+        foot_height = thigh_length * np.sin(hip_angle) + shin_length * np.sin(hip_angle + knee_angle)
+        
+        # Ankle adjustment (simplified)
+        foot_height += 0.05 * np.sin(hip_angle + knee_angle + ankle_angle)
+        
+        return abs(foot_height)
 
     def run_one_step(self):
         state_np = self.get_diablo_observations()
@@ -169,7 +229,7 @@ class ActorCriticNode(ReinforcementLearningNode):
         scaled_action = self.create_continuous_command(action_tensor)
         self.take_action(scaled_action)
 
-        reward = self.compute_reward_from_state(state_np)
+        reward = self.compute_reward_from_state(state_np, actions_np=action_tensor.detach().cpu().numpy())
         done = self.is_simulation_stopped()
 
         # print(f'this is step {self.step} and reward is {reward}')
@@ -186,36 +246,205 @@ class ActorCriticNode(ReinforcementLearningNode):
 
     
 
-    def compute_reward_from_state(self, state_np):
-        height = state_np[16]
+    # def compute_reward_from_state(self, state_np):
+    #     height = state_np[16]
+    #     roll = state_np[17]
+    #     pitch = state_np[18]
+
+    #     target_height = (self.height_limit_lower + self.height_limit_upper) / 2.0
+    #     alive_bonus = 0.1
+
+    #     reward = 0.0
+
+    #     # 1) height reward
+    #     if height < self.height_limit_lower or height > self.height_limit_upper:
+    #         reward -= 5.0   # clearly bad height
+    #     else:
+    #         # smoothly reward being near target height
+    #         height_error = height - target_height
+    #         reward += 3.0 * np.exp(- (height_error / 0.05) ** 2)  # Gaussian around target
+
+    #     # 2) orientation penalty (rad^2 gives stronger penalty when angle grows)
+
+        
+    #     angle_penalty_scale = 3.0
+    #     reward -= angle_penalty_scale * (roll ** 2 + pitch ** 2)
+
+    #     # 3) small alive bonus each step
+    #     reward += alive_bonus
+
+    #     # 4) optional: strong penalty on failure
+    #     if self.is_simulation_stopped():
+    #         reward -= 20.0
+
+    #     return reward
+
+    def compute_reward_from_state(self, state_np, actions_np=None, dt=0.005):
+        """
+        Comprehensive reward function for wheel-ankle biped standing up
+        """
+        # Extract observations
+        joint_positions = state_np[0:8]
+        joint_velocities = state_np[8:16]
+        ground_distance = state_np[16]  # Lidar distance
         roll = state_np[17]
         pitch = state_np[18]
-
-        target_height = (self.height_limit_lower + self.height_limit_upper) / 2.0
-        alive_bonus = 0.1
-
-        reward = 0.0
-
-        # 1) height reward
-        if height < self.height_limit_lower or height > self.height_limit_upper:
-            reward -= 5.0   # clearly bad height
+        vertical_accel = state_np[19]  # az
+        
+    
+        if actions_np is None:
+            actions_np = np.zeros(self.action_size)
+        
+        
+        k1, k2 = 2.0, 2.0
+        R_orient = np.exp(-k1 * abs(roll) - k2 * abs(pitch))
+        
+        if abs(roll) < 0.1 and abs(pitch) < 0.1: 
+            R_orient += 0.5
+        
+        # 2. Height Reward (R_height)
+        
+        if ground_distance < self.height_limit_lower:
+            height_progress = 0.0
         else:
-            # smoothly reward being near target height
-            height_error = height - target_height
-            reward += 3.0 * np.exp(- (height_error / 0.05) ** 2)  # Gaussian around target
+            height_progress = (ground_distance - self.height_limit_lower) / \
+                             (self.standing_height - self.height_limit_lower)
+        height_progress = np.clip(height_progress, 0, 1)
+        
+        # Gaussian reward around target height
+        height_error = ground_distance - self.target_height
+        R_height_gaussian = np.exp(-(height_error / 0.05) ** 2)
+        
+        # Combined height reward
+        R_height = 0.7 * height_progress + 0.3 * R_height_gaussian
+        
+        
+        if self.height_limit_lower < ground_distance < self.height_limit_upper:
+            R_com = 1.0
+        else:
+            R_com = -1.0
+        
+        # 4. Foot Clearance Reward 
+        if ground_distance > self.height_limit_lower + 0.1:
+            left_foot_height = self.estimate_foot_height(joint_positions[0:4], True)
+            right_foot_height = self.estimate_foot_height(joint_positions[4:8], False)
+            target_foot_height = 0.02  # 2cm off ground
+            
+            clearance_reward_left = np.exp(-10 * abs(left_foot_height - target_foot_height))
+            clearance_reward_right = np.exp(-10 * abs(right_foot_height - target_foot_height))
+            R_clearance = 0.5 * (clearance_reward_left + clearance_reward_right)
+        else:
+            R_clearance = 0.0
+        
+        # 5. Wheel Slip Penalty 
+        wheel_velocities = joint_velocities[6:8]  # Assuming last 2 are wheels
+        
+        if ground_distance < self.target_height:
+           
+            P_wheel_slip = -np.sum(np.abs(wheel_velocities))
+        else:
+            
+            P_wheel_slip = -0.1 * np.sum(np.abs(wheel_velocities))
+        
+        # 6. Wheel Torque Penalty 
+        wheel_torques = actions_np[6:8]
+        P_wheel_torque = -np.sum(np.abs(wheel_torques))
+        
+        # 7. Joint Torque Penalty 
+        joint_torques = actions_np[0:8]
+        P_joint_torque = -np.sum(np.square(joint_torques))
+        
+        # 8. Action Smoothness Penalty
+        action_changes = actions_np - self.prev_actions
+        P_action_smooth = -np.sum(np.square(action_changes))
+        
+        # 9. Joint Acceleration Penalty
+        joint_velocities_np = np.asarray(joint_velocities, dtype=np.float32)
+        prev_joint_velocities_np = np.asarray(self.prev_joint_velocities, dtype=np.float32)
 
-        # 2) orientation penalty (rad^2 gives stronger penalty when angle grows)
-        angle_penalty_scale = 3.0
-        reward -= angle_penalty_scale * (roll ** 2 + pitch ** 2)
+        joint_accelerations = (joint_velocities_np - prev_joint_velocities_np) / dt
 
-        # 3) small alive bonus each step
-        reward += alive_bonus
-
-        # 4) optional: strong penalty on failure
+        P_joint_accel = -0.001 * np.sum(np.square(joint_accelerations))
+        
+        # 10. Energy Efficiency Penalty
+        power = np.sum(np.abs(joint_torques * joint_velocities))
+        P_energy = -0.0001 * power
+        
+        # 11. Success Bonus (sparse reward)
+        success_bonus = 0.0
+        is_upright = (abs(roll) < 0.17 and abs(pitch) < 0.17 and
+                     self.height_limit_lower < ground_distance < self.height_limit_upper)
+        
+        if is_upright:
+            self.upright_time_steps += 1
+            if self.upright_time_steps >= self.required_upright_steps:
+                success_bonus = 100.0
+                self.get_logger().info(f"Episode {self.episode}: SUCCESS! Standing achieved!")
+        else:
+            self.upright_time_steps = 0
+        
+        # 12. Failure Penalty
+        failure_penalty = 0.0
         if self.is_simulation_stopped():
-            reward -= 20.0
-
-        return reward
+            failure_penalty = -20.0
+        elif abs(roll) > np.deg2rad(45) or abs(pitch) > np.deg2rad(45):
+            failure_penalty = -10.0
+        
+        # Update previous values
+        self.prev_actions = actions_np.copy()
+        self.prev_joint_velocities = joint_velocities.copy()
+        
+        # Calculate total reward with curriculum
+        if self.curriculum_stage == 1:
+            # Stage 1: Basic height and orientation
+            total_reward = (
+                self.reward_weights['orient'] * R_orient +
+                self.reward_weights['height'] * R_height +
+                success_bonus +
+                failure_penalty
+            )
+        elif self.curriculum_stage == 2:
+            # Stage 2: Add wheel control
+            total_reward = (
+                self.reward_weights['orient'] * R_orient +
+                self.reward_weights['height'] * R_height +
+                self.reward_weights['wheel_slip'] * P_wheel_slip +
+                self.reward_weights['wheel_torque'] * P_wheel_torque +
+                success_bonus +
+                failure_penalty
+            )
+        else:
+            # Stage 3: Full reward system
+            total_reward = (
+                self.reward_weights['orient'] * R_orient +
+                self.reward_weights['height'] * R_height +
+                self.reward_weights['com'] * R_com +
+                self.reward_weights['clearance'] * R_clearance +
+                self.reward_weights['wheel_slip'] * P_wheel_slip +
+                self.reward_weights['wheel_torque'] * P_wheel_torque +
+                self.reward_weights['joint_torque'] * P_joint_torque +
+                self.reward_weights['action_smooth'] * P_action_smooth +
+                self.reward_weights['energy'] * P_energy +
+                success_bonus +
+                failure_penalty
+            )
+        
+        # Progress curriculum
+        if self.episode > 0 and self.episode % 100 == 0:
+            if self.curriculum_stage < 3:
+                self.curriculum_stage += 1
+                self.get_logger().info(f"Advancing to curriculum stage {self.curriculum_stage}")
+        
+        # Debug logging
+        # if np.random.random() < 0.01:  # Log 1% of steps
+        #     self.get_logger().info(
+        #         f"Ep {self.episode}, Step {self.step}: "
+        #         f"Height={ground_distance:.3f}, "
+        #         f"Roll={roll:.3f}, Pitch={pitch:.3f}, "
+        #         f"Reward={total_reward:.3f}"
+        #     )
+        
+        return total_reward
 
     def finish_update(self):
         # Safety: do nothing if buffer is empty
@@ -313,6 +542,9 @@ class ActorCriticNode(ReinforcementLearningNode):
             self.step = 0
             self.episode_length = 0
             self.episode_reward = 0
+            self.upright_time_steps = 0
+            self.prev_actions = np.zeros(self.action_size)
+            self.prev_joint_velocities = np.zeros(8)
             return
 
         # Normal step

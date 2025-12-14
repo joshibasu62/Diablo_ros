@@ -23,7 +23,7 @@ class reinforcement_learning_node_parameters:
 
         max_number_of_episodes = 2000
         max_number_of_steps = 2096
-        max_effort_command = [50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0]
+        max_effort_command = [70.0, 70.0, 70.0, 70.0, 70.0, 70.0, 70.0, 70.0]
         discount_factor = 0.995
         reward = 1
 

@@ -3,6 +3,7 @@
 import rclpy
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
+from stable_baselines3.common.monitor import Monitor
 
 from base_class.diablo_ppo_env import DiabloEnv
 import os
@@ -11,8 +12,12 @@ import os
 def make_env():
     # max_effort_command should match your ROS parameters
     # Example: 8 joints with symmetric torque limits
-    max_effort_command = [30.0, 30.0, 30.0, 30.0, 30.0, 30.0, 30.0, 30.0]
-    return DiabloEnv(max_effort_command=max_effort_command)
+    max_effort_command = [70.0, 70.0, 70.0, 70.0, 70.0, 70.0, 70.0, 70.0]
+    env = DiabloEnv(max_effort_command=max_effort_command)
+
+    env = Monitor(env)
+
+    return env
 
 
 def main():

@@ -185,6 +185,7 @@ class DiabloEnv(gym.Env):
         # Compute reward (same as your compute_reward_from_state)
         reward = self._compute_reward_from_state(obs)
 
+
         # Termination logic: you want fixed-length episodes
         terminated = False
         truncated = (self.step_count >= self.max_steps) or self.node.is_truncated

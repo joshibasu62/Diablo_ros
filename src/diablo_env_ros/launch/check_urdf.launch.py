@@ -12,7 +12,11 @@ def generate_launch_description():
     pkg_diablo_env_ros = get_package_share_directory('diablo_env_ros')
 
     gazebo_models_path, ignore_last_dir = os.path.split(pkg_diablo_env_ros)
-    os.environ["GZ_SIM_RESOURCE_PATH"] += os.pathsep + gazebo_models_path
+    existing_paths = os.environ.get("GZ_SIM_RESOURCE_PATH", "")
+    if gazebo_models_path not in existing_paths.split(os.pathsep):
+        os.environ["GZ_SIM_RESOURCE_PATH"] = (
+            existing_paths + os.pathsep + gazebo_models_path if existing_paths else gazebo_models_path
+        )
 
     rviz_launch_arg = DeclareLaunchArgument(
         'rviz', default_value='true',
@@ -29,11 +33,10 @@ def generate_launch_description():
         description='Name of the URDF description to load'
     )
 
-    # Define the path to your URDF or Xacro file
     urdf_file_path = PathJoinSubstitution([
-        pkg_diablo_env_ros,  # Replace with your package name
+        pkg_diablo_env_ros,  
         "urdf",
-        LaunchConfiguration('model')  # Replace with your URDF or Xacro file
+        LaunchConfiguration('model') 
     ])
 
     world_launch = IncludeLaunchDescription(
@@ -45,10 +48,6 @@ def generate_launch_description():
         }.items()
     )
 
-    
-
-
-    # Spawn the URDF model using the `/world/<world_name>/create` service
     spawn_urdf_node = Node(
         package="ros_gz_sim",
         executable="create",
@@ -79,10 +78,7 @@ def generate_launch_description():
         ]
     )
 
-
-    # Launch rviz
     
-    # Node to bridge messages like /cmd_vel and /odom
     gz_bridge_node = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
@@ -100,13 +96,13 @@ def generate_launch_description():
             "/joint_right_leg_4_effort@std_msgs/msg/Float64@gz.msgs.Double",
             "/imu@sensor_msgs/msg/Imu@gz.msgs.IMU",
             "/lidar@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan",
+            "/model/robot/pose@geometry_msgs/msg/PoseStamped[gz.msgs.Pose",
         ],
         output="screen",
         parameters=[
             {'use_sim_time': True},
         ]
     )
-
     rviz_node = Node(
         package='rviz2',
         executable='rviz2',
@@ -116,13 +112,6 @@ def generate_launch_description():
             {'use_sim_time': True},
         ]
     )
-    
-    
-
-    # joint_state_publisher_gui_node = Node(
-    #     package='joint_state_publisher_gui',
-    #     executable='joint_state_publisher_gui',
-    # )
 
     launchDescriptionObject = LaunchDescription()
 
@@ -133,30 +122,7 @@ def generate_launch_description():
     launchDescriptionObject.add_action(world_launch)
     launchDescriptionObject.add_action(spawn_urdf_node)
     launchDescriptionObject.add_action(robot_state_publisher_node)
-    
-    
-    
-    
-    
-    
-
-    
     launchDescriptionObject.add_action(gz_bridge_node)
-     
     # launchDescriptionObject.add_action(rviz_node)
-
-    #if want delay
-
-    # launchDescriptionObject.add_action(TimerAction(actions=[spawn_urdf_node],period=5.0))
-    # launchDescriptionObject.add_action(TimerAction(actions=[robot_state_publisher_node],period=5.0))
-    
-    
-
-
-    
-    # launchDescriptionObject.add_action(TimerAction(actions=[gz_bridge_node],period=5.0))
-     
-    # launchDescriptionObject.add_action(TimerAction(actions=[rviz_node],period=5.0))
-    # launchDescriptionObject.add_action(joint_state_publisher_gui_node)
 
     return launchDescriptionObject

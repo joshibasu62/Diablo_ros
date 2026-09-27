@@ -23,3 +23,4 @@ float64[] lidar_ranges
 float64[] imu_orientation
 
 float64[] acceleration
+float64 height

@@ -17,8 +17,13 @@ def generate_launch_description():
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
 
     # Add your own gazebo library path here
-    gazebo_models_path = "/home/david/gazebo_models"
-    os.environ["GZ_SIM_RESOURCE_PATH"] += os.pathsep + gazebo_models_path
+    gazebo_models_path = os.path.expanduser("~/gazebo_models")
+    if os.path.isdir(gazebo_models_path):
+        existing_paths = os.environ.get("GZ_SIM_RESOURCE_PATH", "")
+        if gazebo_models_path not in existing_paths.split(os.pathsep):
+            os.environ["GZ_SIM_RESOURCE_PATH"] = (
+                existing_paths + os.pathsep + gazebo_models_path if existing_paths else gazebo_models_path
+            )
 
     # set_headless_env = [
     #     SetEnvironmentVariable(name='GZ_SIM_HEADLESS', value='1'),
@@ -28,7 +33,7 @@ def generate_launch_description():
     # ]
 
     gazebo_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
+       PythonLaunchDescriptionSource(
             os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py'),
         ),
         launch_arguments={

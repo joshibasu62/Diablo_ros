@@ -233,7 +233,7 @@
       <parent link="left_leg_2" />
       <child link="left_leg_3" />
       <axis xyz="0 0 1" />
-      <limit lower="-2.670354" upper="-0.698132" effort="100" velocity="100" />
+      <limit lower="-2.670354" upper="0.2" effort="100" velocity="100" />
     </joint>
 
     <link name="left_leg_4">
@@ -354,7 +354,7 @@
       <parent link="right_leg_2" />
       <child link="right_leg_3" />
       <axis xyz="0 0 1" />
-      <limit lower="-2.670354" upper="-0.698132" effort="100" velocity="100" />
+      <limit lower="-2.670354" upper="0.2" effort="100" velocity="100" />
     </joint>
     
     <link name="right_leg_4">

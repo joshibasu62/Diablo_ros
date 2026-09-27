@@ -10,26 +10,17 @@ import os
 
 
 def make_env():
-    # max_effort_command should match your ROS parameters
-    # Example: 8 joints with symmetric torque limits
     max_effort_command = [70.0, 70.0, 70.0, 70.0, 70.0, 70.0, 70.0, 70.0]
     env = DiabloEnv(max_effort_command=max_effort_command)
-
     env = Monitor(env)
-
     return env
 
 
 def main():
-    # Start ROS2
     rclpy.init()
-
-    # Wrap env in VecEnv for Stable-Baselines3
     env = DummyVecEnv([make_env])
-
     log_dir = os.path.join(os.path.expanduser("~"), "ppo_diablo_logs")
     os.makedirs(log_dir, exist_ok=True)
-
     model = PPO(
         policy="MlpPolicy",
         env=env,
@@ -42,11 +33,13 @@ def main():
         ent_coef=0.003,
         learning_rate=3e-4,
         clip_range=0.2,
+        # init log_std=-2.5 -> torque sigma ~5.7 Nm; SB3 default (0.0)
+        # gives sigma=70 Nm which topples the robot within ~70 ms
+        policy_kwargs={"log_std_init": -2.5},
         verbose=1,
         tensorboard_log=log_dir,
     )
 
-    # Train for some timesteps (adjust as needed)
     model.learn(
         total_timesteps=1_000_000,
         tb_log_name="PPO_Diablo",

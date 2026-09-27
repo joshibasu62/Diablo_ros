@@ -14,7 +14,6 @@ generate_parameter_module(
 # )
 
 
-
 setup(
     name=package_name,
     version='0.0.0',
@@ -33,9 +32,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "venv_check = base_class.venv_check:main",
             "diablo_basic_policy_node = base_class.diablo_basic_policy_node:main",
-            "reinforce = base_class.reinforce:main",
             "reinforce_node = base_class.reinforce_node:main",
             "actor_critic_node = base_class.actor_critic_node:main",
             "train_ppo_diablo = base_class.train_ppo_diablo:main",

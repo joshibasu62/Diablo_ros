@@ -20,8 +20,16 @@ class ActorCritic(nn.Module):
 
         # actor head
         self.mean_head = nn.Linear(hidden_size, action_size)
+        # Start at EXACT zero torque: the robot is passively stable at zero
+        # effort (stands 15+ s in physics-only tests), while a randomly
+        # initialized head knocked it over within ~0.5 s, giving the learner
+        # only garbage 10-step fall trajectories to learn from.
+        nn.init.zeros_(self.mean_head.weight)
+        nn.init.zeros_(self.mean_head.bias)
         # learnable log std (one per action dim)
-        self.log_std = nn.Parameter(torch.ones(action_size) * -1.0)
+        # init -2.5 -> exp(-2.5)=0.082 -> torque sigma ~5.7 Nm. Larger
+        # initial noise topples the robot within ~70 ms.
+        self.log_std = nn.Parameter(torch.ones(action_size) * -2.5)
 
         # critic head
         self.value_head = nn.Linear(hidden_size, 1)
@@ -80,6 +88,15 @@ class RolloutBuffer:
         self.dones[idx] = bool(done)
         self.values[idx] = float(value.detach())
         self.ptr += 1
+
+    def mark_terminal(self, failure_penalty=0.0):
+        """Flag the most recent transition as end-of-episode so GAE does not
+        bootstrap across the reset, and optionally apply a failure penalty."""
+        if self.ptr == 0:
+            return
+        i = self.ptr - 1
+        self.dones[i] = True
+        self.rewards[i] += float(failure_penalty)
 
     def is_full(self):
         return self.ptr >= self.rollout_length
@@ -149,7 +166,10 @@ class ActorCriticNode(ReinforcementLearningNode):
         }
         
         # Standing parameters
-        self.target_height = (self.height_limit_lower + self.height_limit_upper) / 2.0
+        # Reward target = real standing height (FK: base_link at 0.4925 m with
+        # wheels on ground). The old midpoint (0.45) made a permanent crouch
+        # score HIGHER than full standing, which is not the task.
+        self.target_height = 0.4925
         self.standing_height = 0.6  # Adjust based on your robot
         self.max_roll_pitch = np.deg2rad(15)
         
@@ -229,7 +249,7 @@ class ActorCriticNode(ReinforcementLearningNode):
         scaled_action = self.create_continuous_command(action_tensor)
         self.take_action(scaled_action)
 
-        reward = self.compute_reward_from_state(state_np, actions_np=action_tensor.detach().cpu().numpy())
+        reward = self.compute_reward_from_state(state_np, action_tensor.detach().cpu().numpy())
         done = self.is_simulation_stopped()
 
         # print(f'this is step {self.step} and reward is {reward}')
@@ -246,210 +266,53 @@ class ActorCriticNode(ReinforcementLearningNode):
 
     
 
-    # def compute_reward_from_state(self, state_np):
-    #     height = state_np[16]
-    #     roll = state_np[17]
-    #     pitch = state_np[18]
-
-    #     target_height = (self.height_limit_lower + self.height_limit_upper) / 2.0
-    #     alive_bonus = 0.1
-
-    #     reward = 0.0
-
-    #     # 1) height reward
-    #     if height < self.height_limit_lower or height > self.height_limit_upper:
-    #         reward -= 5.0   # clearly bad height
-    #     else:
-    #         # smoothly reward being near target height
-    #         height_error = height - target_height
-    #         reward += 3.0 * np.exp(- (height_error / 0.05) ** 2)  # Gaussian around target
-
-    #     # 2) orientation penalty (rad^2 gives stronger penalty when angle grows)
-
-        
-    #     angle_penalty_scale = 3.0
-    #     reward -= angle_penalty_scale * (roll ** 2 + pitch ** 2)
-
-    #     # 3) small alive bonus each step
-    #     reward += alive_bonus
-
-    #     # 4) optional: strong penalty on failure
-    #     if self.is_simulation_stopped():
-    #         reward -= 20.0
-
-    #     return reward
-
-    def compute_reward_from_state(self, state_np, actions_np=None, dt=0.005):
-        """
-        Comprehensive reward function for wheel-ankle biped standing up
-        """
-        # Extract observations
-        joint_positions = state_np[0:8]
-        joint_velocities = state_np[8:16]
-        ground_distance = state_np[16]  # Lidar distance
+    def compute_reward_from_state(self, state_np, actions_np=None):
+        height = state_np[16]
         roll = state_np[17]
         pitch = state_np[18]
-        vertical_accel = state_np[19]  # az
-        
-    
-        if actions_np is None:
-            actions_np = np.zeros(self.action_size)
-        
-        
-        k1, k2 = 2.0, 2.0
-        R_orient = np.exp(-k1 * abs(roll) - k2 * abs(pitch))
-        
-        if abs(roll) < 0.1 and abs(pitch) < 0.1: 
-            R_orient += 0.5
-        
-        # 2. Height Reward (R_height)
-        
-        if ground_distance < self.height_limit_lower:
-            height_progress = 0.0
-        else:
-            height_progress = (ground_distance - self.height_limit_lower) / \
-                             (self.standing_height - self.height_limit_lower)
-        height_progress = np.clip(height_progress, 0, 1)
-        
-        # Gaussian reward around target height
-        height_error = ground_distance - self.target_height
-        R_height_gaussian = np.exp(-(height_error / 0.05) ** 2)
-        
-        # Combined height reward
-        R_height = 0.7 * height_progress + 0.3 * R_height_gaussian
-        
-        
-        if self.height_limit_lower < ground_distance < self.height_limit_upper:
-            R_com = 1.0
-        else:
-            R_com = -1.0
-        
-        # 4. Foot Clearance Reward 
-        if ground_distance > self.height_limit_lower + 0.1:
-            left_foot_height = self.estimate_foot_height(joint_positions[0:4], True)
-            right_foot_height = self.estimate_foot_height(joint_positions[4:8], False)
-            target_foot_height = 0.02  # 2cm off ground
-            
-            clearance_reward_left = np.exp(-10 * abs(left_foot_height - target_foot_height))
-            clearance_reward_right = np.exp(-10 * abs(right_foot_height - target_foot_height))
-            R_clearance = 0.5 * (clearance_reward_left + clearance_reward_right)
-        else:
-            R_clearance = 0.0
-        
-        # 5. Wheel Slip Penalty 
-        wheel_velocities = joint_velocities[6:8]  # Assuming last 2 are wheels
-        
-        if ground_distance < self.target_height:
-           
-            P_wheel_slip = -np.sum(np.abs(wheel_velocities))
-        else:
-            
-            P_wheel_slip = -0.1 * np.sum(np.abs(wheel_velocities))
-        
-        # 6. Wheel Torque Penalty 
-        wheel_torques = actions_np[6:8]
-        P_wheel_torque = -np.sum(np.abs(wheel_torques))
-        
-        # 7. Joint Torque Penalty 
-        joint_torques = actions_np[0:8]
-        P_joint_torque = -np.sum(np.square(joint_torques))
-        
-        # 8. Action Smoothness Penalty
-        action_changes = actions_np - self.prev_actions
-        P_action_smooth = -np.sum(np.square(action_changes))
-        
-        # 9. Joint Acceleration Penalty
-        joint_velocities_np = np.asarray(joint_velocities, dtype=np.float32)
-        prev_joint_velocities_np = np.asarray(self.prev_joint_velocities, dtype=np.float32)
 
-        joint_accelerations = (joint_velocities_np - prev_joint_velocities_np) / dt
+        alive_bonus = 0.1
 
-        P_joint_accel = -0.001 * np.sum(np.square(joint_accelerations))
-        
-        # 10. Energy Efficiency Penalty
-        power = np.sum(np.abs(joint_torques * joint_velocities))
-        P_energy = -0.0001 * power
-        
-        # 11. Success Bonus (sparse reward)
-        success_bonus = 0.0
-        is_upright = (abs(roll) < 0.17 and abs(pitch) < 0.17 and
-                     self.height_limit_lower < ground_distance < self.height_limit_upper)
-        
-        if is_upright:
-            self.upright_time_steps += 1
-            if self.upright_time_steps >= self.required_upright_steps:
-                success_bonus = 100.0
-                self.get_logger().info(f"Episode {self.episode}: SUCCESS! Standing achieved!")
-        else:
-            self.upright_time_steps = 0
-        
-        # 12. Failure Penalty
-        failure_penalty = 0.0
-        if self.is_simulation_stopped():
-            failure_penalty = -20.0
-        elif abs(roll) > np.deg2rad(45) or abs(pitch) > np.deg2rad(45):
-            failure_penalty = -10.0
-        
-        # Update previous values
-        self.prev_actions = actions_np.copy()
-        self.prev_joint_velocities = joint_velocities.copy()
-        
-        # Calculate total reward with curriculum
-        if self.curriculum_stage == 1:
-            # Stage 1: Basic height and orientation
-            total_reward = (
-                self.reward_weights['orient'] * R_orient +
-                self.reward_weights['height'] * R_height +
-                success_bonus +
-                failure_penalty
-            )
-        elif self.curriculum_stage == 2:
-            # Stage 2: Add wheel control
-            total_reward = (
-                self.reward_weights['orient'] * R_orient +
-                self.reward_weights['height'] * R_height +
-                self.reward_weights['wheel_slip'] * P_wheel_slip +
-                self.reward_weights['wheel_torque'] * P_wheel_torque +
-                success_bonus +
-                failure_penalty
-            )
-        else:
-            # Stage 3: Full reward system
-            total_reward = (
-                self.reward_weights['orient'] * R_orient +
-                self.reward_weights['height'] * R_height +
-                self.reward_weights['com'] * R_com +
-                self.reward_weights['clearance'] * R_clearance +
-                self.reward_weights['wheel_slip'] * P_wheel_slip +
-                self.reward_weights['wheel_torque'] * P_wheel_torque +
-                self.reward_weights['joint_torque'] * P_joint_torque +
-                self.reward_weights['action_smooth'] * P_action_smooth +
-                self.reward_weights['energy'] * P_energy +
-                success_bonus +
-                failure_penalty
-            )
-        
-        # Progress curriculum
-        if self.episode > 0 and self.episode % 100 == 0:
-            if self.curriculum_stage < 3:
-                self.curriculum_stage += 1
-                self.get_logger().info(f"Advancing to curriculum stage {self.curriculum_stage}")
-        
-        # Debug logging
-        # if np.random.random() < 0.01:  # Log 1% of steps
-        #     self.get_logger().info(
-        #         f"Ep {self.episode}, Step {self.step}: "
-        #         f"Height={ground_distance:.3f}, "
-        #         f"Roll={roll:.3f}, Pitch={pitch:.3f}, "
-        #         f"Reward={total_reward:.3f}"
-        #     )
-        
-        return total_reward
+        # 1) height reward: Gaussian around the real standing height.
+        # (No special out-of-range branch: height outside [lower, upper] sets
+        # is_truncated in update_simulation_status, so run_one_step is never
+        # reached with such a state -- that branch was dead code.)
+        height_error = height - self.target_height
+        reward = 3.0 * np.exp(-(height_error / 0.05) ** 2)
+
+        # 2) orientation penalty (rad^2 gives stronger penalty when angle grows)
+        reward -= 3.0 * (roll ** 2 + pitch ** 2)
+
+        # 3) small alive bonus each step
+        reward += alive_bonus
+
+        # 4) small effort penalty: discourages violent flailing without
+        # outweighing the standing reward (max ~0.008 vs ~1.6 per step)
+        if actions_np is not None:
+            reward -= 0.001 * float(np.sum(np.square(actions_np)))
+
+        # Terminal failure penalty (-20) is applied in run() via
+        # buffer.mark_terminal(): is_simulation_stopped() is already True
+        # when this function is gated, so an in-place check here never fired.
+
+        return reward
+
+ 
 
     def finish_update(self):
         # Safety: do nothing if buffer is empty
         if not self.buffer.has_data():
             self.get_logger().warn("finish_update() called but rollout buffer is empty; skipping.")
+            return
+
+        # Safety: need >= 2 samples. With 1 sample, advantage normalization
+        # (std of one element) is NaN, which poisons every gradient and leaves
+        # log_std masked at -0.7 forever (frozen sigma ~0.5 -> 35 Nm noise).
+        if self.buffer.ptr < 2:
+            self.get_logger().warn(
+                f"finish_update() with {self.buffer.ptr} sample(s); skipping to avoid NaN."
+            )
+            self.buffer.clear()
             return
 
         states_np, actions_np, log_probs_np, rewards_np, dones_np, values_np = self.buffer.get()
@@ -472,8 +335,12 @@ class ActorCriticNode(ReinforcementLearningNode):
         returns_t = torch.FloatTensor(returns).to(device)
         advantages_t = torch.FloatTensor(advantages).to(device)
 
-        # normalize advantages
-        advantages_t = (advantages_t - advantages_t.mean()) / (advantages_t.std() + 1e-8)
+        # normalize advantages (guard against zero-variance batches)
+        adv_std = advantages_t.std()
+        if torch.isfinite(adv_std) and adv_std > 1e-6:
+            advantages_t = (advantages_t - advantages_t.mean()) / (adv_std + 1e-8)
+        else:
+            self.get_logger().warn("Degenerate advantage batch; skipping normalization.")
 
         dataset_size = states.shape[0]
         inds = np.arange(dataset_size)
@@ -502,10 +369,25 @@ class ActorCriticNode(ReinforcementLearningNode):
 
                 loss = policy_loss + self.value_coef * value_loss - self.entropy_coef * entropy
 
+                if not torch.isfinite(loss):
+                    self.get_logger().error(
+                        "Non-finite loss detected; skipping this update to protect parameters."
+                    )
+                    value_losses, policy_losses, entropies, total_loss = [], [], [], []
+                    break
+
                 self.optimizer.zero_grad()
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.ac.parameters(), 0.5)
                 self.optimizer.step()
+
+                # self-heal: if the noise parameter ever became non-finite,
+                # restore it (forward's nan_to_num hides it but would freeze
+                # exploration sigma at exp(-0.7) ~ 0.5 forever)
+                if not torch.isfinite(self.ac.log_std).all():
+                    self.get_logger().error("log_std went non-finite; re-initializing to -2.5.")
+                    with torch.no_grad():
+                        self.ac.log_std.fill_(-2.5)
 
                 value_losses.append(value_loss.item())
                 policy_losses.append(policy_loss.item())
@@ -517,6 +399,7 @@ class ActorCriticNode(ReinforcementLearningNode):
             f"Update finished: policy_loss={np.mean(policy_losses):.4f} "
             f"value_loss={np.mean(value_losses):.4f} entropy={np.mean(entropies):.4f} "
             f"reward={np.mean(rewards_np)} "
+            f"action_abs_mean={np.mean(np.abs(actions_np)):.3f} "
             f"total_loss = {np.mean(total_loss):.4f}"
         )
 
@@ -531,9 +414,14 @@ class ActorCriticNode(ReinforcementLearningNode):
 
         # If previous step ended the episode, handle it BEFORE taking another step
         if self.is_episode_ended() or self.is_simulation_stopped():
-            if self.buffer.has_data():
-                self.finish_update()
-            
+            # The observation that ended the episode is never stepped on, so
+            # flag the terminal transition here (GAE needs the boundary and
+            # the failure penalty must actually reach the buffer).
+            if self.is_simulation_stopped():
+                self.buffer.mark_terminal(failure_penalty=-20.0)
+            else:
+                self.buffer.mark_terminal(failure_penalty=0.0)
+
             self.get_logger().info(
                 f"Episode {self.episode} ended with {self.step} steps"
             )
@@ -541,7 +429,7 @@ class ActorCriticNode(ReinforcementLearningNode):
             self.episode += 1
             self.step = 0
             self.episode_length = 0
-            self.episode_reward = 0
+            self.episode_reward = 0.0
             self.upright_time_steps = 0
             self.prev_actions = np.zeros(self.action_size)
             self.prev_joint_velocities = np.zeros(8)
@@ -550,7 +438,10 @@ class ActorCriticNode(ReinforcementLearningNode):
         # Normal step
         self.run_one_step()
 
-        # If the buffer is full after this step, update (on-policy)
+        # If the buffer is full after this step, update (on-policy).
+        # Updates happen ONLY on full rollouts: tiny per-episode batches gave
+        # extremely noisy updates (and 1-sample batches NaN the advantage
+        # normalization).
         if self.buffer.is_full():
             self.finish_update()
 

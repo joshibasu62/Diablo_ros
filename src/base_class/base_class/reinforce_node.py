@@ -18,7 +18,10 @@ class ContinuousPolicy(nn.Module):
         self.fc1 = nn.Linear(state_size, hidden_size)
         self.fc2 = nn.Linear(hidden_size, hidden_size)
         self.mean_head = nn.Linear(hidden_size, action_size)
-        self.log_std = nn.Parameter(torch.zeros(action_size)) 
+        # init log_std=-3 -> softplus ~0.05 -> torque sigma ~3.5 Nm.
+        # Larger initial noise topples the robot within ~70 ms, leaving
+        # episodes too short to learn from.
+        self.log_std = nn.Parameter(torch.full((action_size,), -3.0))
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))

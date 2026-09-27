@@ -1,5 +1,6 @@
 # diablo_ppo_env.py
 
+import math
 import time
 from typing import Optional, Tuple, Dict, Any
 
@@ -19,11 +20,18 @@ from diablo_joint_observer.msg import Observation
 class DiabloRosNode(Node):
     """Internal ROS2 node used by the Gym environment."""
 
-    def __init__(self, max_effort_command):
+    def __init__(self, max_effort_command,
+                 height_limit_lower: float = 0.15,
+                 height_limit_upper: float = 0.75,
+                 max_tilt: float = math.radians(45.0)):
         super().__init__("diablo_ppo_env_node")
 
         # Store command limits (8 joints)
         self.max_effort_command = np.array(max_effort_command, dtype=np.float32)
+
+        self.height_limit_lower = height_limit_lower
+        self.height_limit_upper = height_limit_upper
+        self.max_tilt = max_tilt
 
         # Latest observation buffer
         self.latest_obs: Optional[Observation] = None
@@ -58,17 +66,23 @@ class DiabloRosNode(Node):
         # Reset service client
         self.reset_client = self.create_client(Empty, "restart_sim_service")
 
-    # ------------------------------------------------------------------ #
-    # Callbacks & helpers                                                #
-    # ------------------------------------------------------------------ #
+    # Callbacks & helpers#
 
     def _obs_callback(self, msg: Observation):
         self.latest_obs = msg
         self.obs_seq += 1
-        # Example truncation criterion using lidar distance:
-        # Use the same logic as your DiabloBaseNode.update_simulation_status()
-        if len(msg.lidar_ranges) > 1 and msg.lidar_ranges[1] < 0.0:
-            self.is_truncated = True
+        # Same termination logic as DiabloBaseNode.update_simulation_status()
+        if not self.is_truncated:
+            height = float(msg.height)
+            roll = float(msg.imu_orientation[0]) if len(msg.imu_orientation) >= 1 else 0.0
+            pitch = float(msg.imu_orientation[1]) if len(msg.imu_orientation) >= 2 else 0.0
+
+            if not (math.isfinite(height) and math.isfinite(roll) and math.isfinite(pitch)):
+                self.is_truncated = True
+            elif height < self.height_limit_lower or height > self.height_limit_upper:
+                self.is_truncated = True
+            elif abs(roll) > self.max_tilt or abs(pitch) > self.max_tilt:
+                self.is_truncated = True
 
     def publish_torques(self, torques: np.ndarray):
         """Publish 8 torques to Gazebo."""
@@ -132,9 +146,7 @@ class DiabloEnv(gym.Env):
         # For detecting new observation per step
         self._last_obs_seq: int = -1
 
-    # ------------------------------------------------------------------ #
-    # Gym API                                                            #
-    # ------------------------------------------------------------------ #
+    # Gym API             #
 
     def reset(
         self,
@@ -199,9 +211,7 @@ class DiabloEnv(gym.Env):
             self.node.destroy_node()
         # rclpy.shutdown() should be called from the training script
 
-    # ------------------------------------------------------------------ #
-    # Helpers                                                            #
-    # ------------------------------------------------------------------ #
+    # Helpers             #
 
     def _wait_for_new_observation(self, timeout_sec: float) -> Optional[np.ndarray]:
         """Wait until a new ROS observation arrives (obs_seq changes)."""
@@ -240,11 +250,8 @@ class DiabloEnv(gym.Env):
         obs[14] = msg.left_leg_4_vel
         obs[15] = msg.right_leg_4_vel
 
-        # lidar: use index 1 as height
-        if len(msg.lidar_ranges) > 1:
-            obs[16] = msg.lidar_ranges[1]
-        else:
-            obs[16] = 0.0
+        # base_link height from model pose (lidar kept only as fallback in observer)
+        obs[16] = float(msg.height)
 
         # imu_orientation: roll, pitch, (yaw)
         if len(msg.imu_orientation) >= 2:

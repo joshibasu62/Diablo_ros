@@ -6,6 +6,7 @@ from std_srvs.srv import Empty
 from rclpy.task import Future
 from rclpy.publisher import Publisher
 from rclpy.client import Client
+import math
 import time
 
 class DiabloBaseNode(Node):
@@ -30,16 +31,25 @@ class DiabloBaseNode(Node):
                                                     self.create_publisher(Float64, 'joint_right_leg_4_effort', 10),
                                                 ]
         self.diablo_observations: list[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-         # 8 joint positions + 8 joint velocities + 1 lidar distance + 3 imu orientations = 20
+         # 8 joint positions + 8 joint velocities + 1 base_link height + 2 imu (roll, pitch) + 1 vertical accel = 20
         self.imu_data = []
         self.lidar_data = []
         self.acceleration_data = []
         self.is_truncated: bool = False
         self.height_limit_lower: float = 0.15
         self.height_limit_upper: float = 0.75
+        self.max_tilt: float = math.radians(45.0)
         # Here i will add limit later using inverse kinematics i.e distace of baselink from ground while writing reinforcement learning code
         self.restarting_future: Future = None
         self.is_resetting: bool = False
+        self.has_fresh_observation: bool = False
+        self.reset_finished_at: float = None
+
+    # After the respawn service returns, keep dropping observations for this
+    # long (wall time). The observer's own freshness window (0.15 s, wall
+    # time) then guarantees that any observation accepted afterwards was built
+    # from sensors of the NEW robot, not the pre-remove one.
+    RESET_SETTLE_SECONDS = 0.2
 
     def store_observation(self, diablo_observation: Observation):  
         if self.is_resetting:
@@ -63,20 +73,24 @@ class DiabloBaseNode(Node):
         self.diablo_observations[14] = diablo_observation.left_leg_4_vel
         self.diablo_observations[15] = diablo_observation.right_leg_4_vel
 
-        self.lidar_data = diablo_observation.lidar_ranges
-        self.diablo_observations[16] = self.lidar_data[1]
+        ranges = diablo_observation.lidar_ranges
+        self.lidar_data = ranges if len(ranges) >= 3 else [0.0, 0.0, 0.0]
+        self.diablo_observations[16] = diablo_observation.height
 
-        self.imu_data = diablo_observation.imu_orientation
-        self.diablo_observations[17] = self.imu_data[0]  # roll
-        self.diablo_observations[18] = self.imu_data[1]  # pitch
+        imu_orientation = diablo_observation.imu_orientation
+        if len(imu_orientation) >= 3:
+            self.imu_data = imu_orientation
+            self.diablo_observations[17] = self.imu_data[0]  # roll
+            self.diablo_observations[18] = self.imu_data[1]  # pitch
 
-        self.acceleration_data = diablo_observation.acceleration
-        self.diablo_observations[19] = self.acceleration_data[2]  # az
-        
+        acceleration = diablo_observation.acceleration
+        if len(acceleration) >= 3:
+            self.acceleration_data = acceleration
+            self.diablo_observations[19] = self.acceleration_data[2]  # az
+
         # self.diablo_observations[19] = self.imu_data[2]  # yaw
-        
-        
 
+        self.has_fresh_observation = True
         self.update_simulation_status()
 
     def get_diablo_observations(self) -> list[float]:
@@ -97,18 +111,28 @@ class DiabloBaseNode(Node):
         self.imu_data = [0.0, 0.0, 0.0]
         self.acceleration_data = [0.0, 0.0, 0.0]
         self.is_truncated = False
+        self.has_fresh_observation = False
 
     def update_simulation_status(self):
+        if self.is_truncated:
+            return
 
-        # current_distance = self.diablo_observations[16]
-        # self.get_logger().info(f"Ground distance: {current_distance}, Truncated: {self.is_truncated}")
-        
-        # if (self.diablo_observations[16] > self.height_limit_lower or self.diablo_observations[16] < self.height_limit_upper) and abs(self.diablo_observations[17]) == 0.0 and abs(self.diablo_observations[18]) == 0.0 :
-        #     self.is_truncated = True
+        height = self.diablo_observations[16]
+        roll = self.diablo_observations[17]
+        pitch = self.diablo_observations[18]
 
-        if self.diablo_observations[16] < 0:
+        reason = None
+        if not math.isfinite(height) or not math.isfinite(roll) or not math.isfinite(pitch):
+            reason = f"non-finite obs (height={height}, roll={roll}, pitch={pitch})"
+        elif height < self.height_limit_lower or height > self.height_limit_upper:
+            reason = f"height {height:.3f} outside [{self.height_limit_lower}, {self.height_limit_upper}]"
+        elif abs(roll) > self.max_tilt or abs(pitch) > self.max_tilt:
+            reason = f"tilt roll={roll:.3f} pitch={pitch:.3f}"
+
+        if reason is not None:
             self.is_truncated = True
-    
+            self.get_logger().info(f"Truncated after {self.step} steps: {reason}")
+
 
     def restart_simulation(self):
         while not self.simulation_reset_service_client.wait_for_service(timeout_sec=1.0):
@@ -116,18 +140,21 @@ class DiabloBaseNode(Node):
         self.restarting_future = self.simulation_reset_service_client.call_async(Empty.Request())
 
     def is_simulation_ready(self) -> bool:
-        if self.restarting_future is None:
-            return True
-        try:
-            if self.restarting_future.done():
+        if self.restarting_future is not None:
+            if not self.restarting_future.done():
+                return False
+            if self.is_resetting:
+                if self.reset_finished_at is None:
+                    self.reset_finished_at = time.monotonic()
+                    return False
+                if time.monotonic() - self.reset_finished_at < self.RESET_SETTLE_SECONDS:
+                    return False
                 self.is_resetting = False
-                return True
-            return False
-        except:
-            return False
+        return self.has_fresh_observation
 
     def restart_learning_loop(self):
         self.is_resetting = True
+        self.reset_finished_at = None
         self.restart_simulation()
         self.reset_observation()
         time.sleep(0.2)

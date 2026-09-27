@@ -39,6 +39,7 @@ class reinforcement_learning_node_parameters:
             self.declare_params()
 
             self.node_.add_on_set_parameters_callback(self.update)
+            self.user_callback = None
             self.clock_ = Clock()
 
         def get_params(self):
@@ -77,6 +78,12 @@ class reinforcement_learning_node_parameters:
             params_to_set = self.unpack_parameter_dict('', param_dict)
             self.update(params_to_set)
 
+        def set_user_callback(self, callback):
+            self.user_callback = callback
+
+        def clear_user_callback(self):
+            self.user_callback = None
+
         def refresh_dynamic_parameters(self):
             updated_params = self.get_params()
             # TODO remove any destroyed dynamic parameters
@@ -112,6 +119,8 @@ class reinforcement_learning_node_parameters:
 
             updated_params.stamp_ = self.clock_.now()
             self.update_internal_params(updated_params)
+            if self.user_callback:
+                self.user_callback(self.get_params())
             return SetParametersResult(successful=True)
 
         def update_internal_params(self, updated_params):
@@ -121,27 +130,27 @@ class reinforcement_learning_node_parameters:
             updated_params = self.get_params()
             # declare all parameters and give default values to non-required ones
             if not self.node_.has_parameter(self.prefix_ + "max_number_of_episodes"):
-                descriptor = ParameterDescriptor(description="Max number of episodes.", read_only = True)
+                descriptor = ParameterDescriptor(description=r"Max number of episodes.", read_only = True)
                 parameter = updated_params.max_number_of_episodes
                 self.node_.declare_parameter(self.prefix_ + "max_number_of_episodes", parameter, descriptor)
 
             if not self.node_.has_parameter(self.prefix_ + "max_number_of_steps"):
-                descriptor = ParameterDescriptor(description="Max number of steps.", read_only = True)
+                descriptor = ParameterDescriptor(description=r"Max number of steps.", read_only = True)
                 parameter = updated_params.max_number_of_steps
                 self.node_.declare_parameter(self.prefix_ + "max_number_of_steps", parameter, descriptor)
 
             if not self.node_.has_parameter(self.prefix_ + "max_effort_command"):
-                descriptor = ParameterDescriptor(description="Effort command sent to robot.", read_only = True)
+                descriptor = ParameterDescriptor(description=r"Effort command sent to robot.", read_only = True)
                 parameter = updated_params.max_effort_command
                 self.node_.declare_parameter(self.prefix_ + "max_effort_command", parameter, descriptor)
 
             if not self.node_.has_parameter(self.prefix_ + "discount_factor"):
-                descriptor = ParameterDescriptor(description="Discount factor.", read_only = True)
+                descriptor = ParameterDescriptor(description=r"Discount factor.", read_only = True)
                 parameter = updated_params.discount_factor
                 self.node_.declare_parameter(self.prefix_ + "discount_factor", parameter, descriptor)
 
             if not self.node_.has_parameter(self.prefix_ + "reward"):
-                descriptor = ParameterDescriptor(description="Reward after each step.", read_only = True)
+                descriptor = ParameterDescriptor(description=r"Reward after each step.", read_only = True)
                 parameter = updated_params.reward
                 self.node_.declare_parameter(self.prefix_ + "reward", parameter, descriptor)
 
